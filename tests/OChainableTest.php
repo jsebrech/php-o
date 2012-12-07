@@ -3,7 +3,7 @@
 include_once dirname(__FILE__)."/../O.php";
 use \O;
 
-class OStringTest extends PHPUnit_Framework_TestCase 
+class OChainableTest extends PHPUnit_Framework_TestCase 
 {
   public function testChainString() 
   {
