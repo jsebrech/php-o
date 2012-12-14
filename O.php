@@ -146,8 +146,6 @@ class StringClass implements \IteratorAggregate {
   function valueOf() {
     return $this->s;
   }
-    
-  // TODO: implement match()
   
   // parse type string (phplint / phpdoc syntax)
   // http://www.icosaedro.it/phplint/phpdoc.html#types
@@ -221,6 +219,10 @@ class ArrayClass implements \IteratorAggregate {
     return count($this->a);
   }
   
+  function has($needle, $strict = FALSE) {
+    return in_array($needle, $this->a, $strict);
+  }
+  
   function search($needle, $strict = FALSE) {
     return array_search($needle, $this->a, $strict);
   }
@@ -276,6 +278,20 @@ class ArrayClass implements \IteratorAggregate {
   
   function merge() {
     return call_user_func_array("array_merge", array_merge(array($this->a), func_get_args()));
+  }
+  
+  function map($callback) {
+    $params = a(func_get_args())->slice(1);
+    a($params)->unshift($callback, $this->a);
+    return call_user_func_array("array_map", $params);
+  }
+  
+  function reduce($callable, $initial = NULL) {
+    return array_reduce($this->a, $callable, $initial);
+  }
+  
+  function sum() {
+    return array_sum($this->a);
   }
   
   function raw() {

@@ -10,6 +10,14 @@ class OArrayTest extends PHPUnit_Framework_TestCase
     $this->assertEquals(3, O\a($arr)->count());
   }
   
+  public function testHas() {
+    $arr = array(1, 2, 3);
+    $this->assertTrue(O\a($arr)->has(2));
+    $this->assertTrue(O\a($arr)->has("2"));
+    $this->assertFalse(O\a($arr)->has("2", TRUE));
+    $this->assertFalse(O\a($arr)->has(0));
+  }
+  
   public function testSearch() {
     $arr = array(1, 2, 3);
     $this->assertEquals(1, O\a($arr)->search(2));
@@ -79,6 +87,27 @@ class OArrayTest extends PHPUnit_Framework_TestCase
     $arrNew = O\a($arr)->merge(array("c", "d"), array("e", "f"));
     $this->assertEquals("abcdef", implode($arrNew));
     $this->assertEquals("ab", implode($arr));
+  }
+  
+  public function testMap() {
+    $arr = array(1, 2, 3);
+    $fn = function($v, $s) { return $v*$s; };
+    $mapped = O\a($arr)->map($fn, array(2, 3, 0));
+    $this->assertEquals(3, O\a($mapped)->count());
+    $this->assertEquals(2, $mapped[0]);
+    $this->assertEquals(6, $mapped[1]);
+  }
+  
+  public function testReduce() {
+    $arr = array(2, 2, 4);
+    $fn = function($a, $b) { return $a+$b; };
+    $result = O\a($arr)->reduce($fn, 1);
+    $this->assertEquals(9, $result);
+  }
+  
+  public function testSum() {
+    $arr = array(1, 1);
+    $this->assertEquals(2, O\a($arr)->sum());
   }
   
   public function testForeach() {
