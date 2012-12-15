@@ -139,6 +139,11 @@ class OStringTest extends PHPUnit_Framework_TestCase
     $this->assertEquals(3, count(O\s("abcbd")->split("b")));
   }
   
+  public function testHtml() {
+    $s = O\s("&'\"<>/")->html();
+    $this->assertEquals("&amp;&#039;&quot;&lt;&gt;&#x2F;", $s);
+  }
+  
   public function testIterable() {
     $s = "abc";
     $a = array();

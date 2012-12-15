@@ -30,7 +30,7 @@ class StringClass implements \IteratorAggregate {
     return $this->s;
   }
   
-  // PHP style
+// PHP style API
   
   function pos($needle) {
     return mb_strpos($this->s, $needle);
@@ -101,7 +101,7 @@ class StringClass implements \IteratorAggregate {
     return in_array($this->s, $haystack);
   }
 
-  // JavaScript syntax
+// JavaScript-style API
   
   function charAt($index) {
     return $this->substr($index, 1);
@@ -146,6 +146,39 @@ class StringClass implements \IteratorAggregate {
   function valueOf() {
     return $this->s;
   }
+  
+// encoder functions
+  
+  // secure encode for html element context
+  // see https://www.owasp.org/index.php/Abridged_XSS_Prevention_Cheat_Sheet
+  function html() {
+    $s = htmlspecialchars($this->s, ENT_QUOTES, "UTF-8");
+    $s = s($s)->replace("/", "&#x2F;");
+    $s = s($s)->replace("&apos;", "&#039;");
+    return $s;
+  }
+  
+  function script() {
+    // TODO: encode for <script> context
+    return $this->s;
+  }
+  
+  function attribute() {
+    // TODO: encode for html attribute context
+    return $this->s;
+  }
+  
+  function css() {
+    // TODO: encode for css context
+    return $this->s;
+  }
+  
+  function url() {
+    // TODO: encode for url parameter context
+    return $this->s;
+  }
+  
+// other methods
   
   // parse type string (phplint / phpdoc syntax)
   // http://www.icosaedro.it/phplint/phpdoc.html#types
@@ -315,6 +348,7 @@ class ObjectClass implements \IteratorAggregate
   private $o;
 
   function __construct($o) {
+    if (is_string($o)) $o = json_decode($o);
     $this->o = (object) $o;
   }
   
@@ -349,27 +383,30 @@ class ObjectClass implements \IteratorAggregate
   function cast($asType = "stdClass") {
     if ($asType == "stdClass") {
       return $this->o;
-    } else if (class_exists($asType)) {
-      if (is_object($this->o)) {
-        $a = (array) $this->o;
-        $refl = new ReflectionClass($asType);
-        $props = $refl->getProperties(
-          ReflectionProperty::IS_STATIC|ReflectionProperty::IS_PUBLIC);
-        $result = new $asType();
-        // convert properties to the right type    
-        foreach ($props as $prop) {
-          $propName = $prop->getName();
-          if (isset($a[$propName])) {
-            $result->$propName =
-              convertType($a[$propName], $prop->getType());
-          };
-        };
-        return $result;
-      } else {
-        return NULL;
-      };
     } else {
-      throw new \Exception("Unrecognized type: ".$asType);
+      if (!class_exists($asType)) $asType = "O\\".$asType;
+      if (class_exists($asType)) {
+        if (is_object($this->o)) {
+          $a = (array) $this->o;
+          $refl = new ReflectionClass($asType);
+          $props = $refl->getProperties(
+            ReflectionProperty::IS_STATIC|ReflectionProperty::IS_PUBLIC);
+          $result = new $asType();
+          // convert properties to the right type    
+          foreach ($props as $prop) {
+            $propName = $prop->getName();
+            if (isset($a[$propName])) {
+              $result->$propName =
+                convertType($a[$propName], $prop->getType());
+            };
+          };
+          return $result;
+        } else {
+          return NULL;
+        };
+      } else {
+        throw new \Exception("Unrecognized type: ".$asType);
+      };
     };
   }  
   

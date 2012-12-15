@@ -45,6 +45,13 @@ class OObjectTest extends PHPUnit_Framework_TestCase
     $this->assertEquals(3, $o->var5->var1);
   }
   
+  public function testJSONToObject() {
+    $o = O\o('{"key":"value"}')->raw();
+    $this->assertTrue(is_object($o));
+    $this->assertTrue(isset($o->key));
+    $this->assertEquals("value", $o->key);
+  }
+  
 }
 
 class ObjectTest1 {
