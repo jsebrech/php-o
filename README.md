@@ -243,7 +243,7 @@ If at any point, you want to get the object that is inside the chainable, you ca
       $s = c(s("123abcxxx"))->substr(3)->rtrim("x")->raw();
       // $s === "abc"
 
-You can use the `c()` function on any type, not just the special types provided by O (e.g. on the DateTime type). The return values are converted to smart types if they are primitives like string or int:
+You can use the `c()` function on any type, not just the special types provided by O (e.g. on the DateTime type). The return values are converted to smart types if they are primitives like string or array:
 
       echo c(new \DateTime())->format("Y-m-d")->explode("-")->pop();
       // contrived example to output the current day
