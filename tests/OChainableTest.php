@@ -41,4 +41,9 @@ class OChainableTest extends PHPUnit_Framework_TestCase
     };
     $this->assertEquals("abc", $r);
   }
+  
+  public function testDeepNesting() {
+    $s = O\c(O\c(O\cs("test")))->raw();
+    $this->assertEquals("test", $s);
+  }
 }

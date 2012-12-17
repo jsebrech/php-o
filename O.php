@@ -235,6 +235,7 @@ class StringClass implements \IteratorAggregate {
     
 }
 
+/** @return O\StringClass */
 function s($p) {
   return new \O\StringClass($p);
 }
@@ -337,6 +338,7 @@ class ArrayClass implements \IteratorAggregate {
   }
 }
 
+/** @return O\ArrayClass */
 function a(&$p) {
   return new \O\ArrayClass($p);
 }
@@ -420,6 +422,7 @@ class ObjectClass implements \IteratorAggregate
   }
 }
 
+/** @return O\ObjectClass */
 function o($p) {
   return new \O\ObjectClass($p);
 }
@@ -500,6 +503,7 @@ class ChainableClass implements \IteratorAggregate
   }
 }
 
+/** @return O\ChainableClass */
 function c($o) {
   if ($o instanceof ChainableClass) {
     return $o;
@@ -507,12 +511,15 @@ function c($o) {
     return new ChainableClass($o);
   };
 }
+/** @return O\ChainableClass */
 function cs($o) {
   return c(s($o));
 }
+/** @return O\ChainableClass */
 function ca($o) {
   return c(a($o));
 }
+/** @return O\ChainableClass */
 function co($o) {
   return c(o($o));
 }
@@ -894,8 +901,8 @@ function validate_Size($value, $variables) {
     case "string": $length = s($value)->len();
   };
   return ($length === NULL) || 
-    ( (($min === NULL) || ($value >= $min)) &&
-      (($max === NULL) || ($value <= $max)) );
+    ( (($min === NULL) || ($length >= $min)) &&
+      (($max === NULL) || ($length <= $max)) );
 }
 Validator::addConstraint("Size", "O\\validate_Size");
 function validate_Size_Message($param) {

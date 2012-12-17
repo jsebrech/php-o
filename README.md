@@ -1,7 +1,7 @@
 php-o
 =====
 
-O-syntax for PHP
+*O-syntax for PHP*
 
 This is an experiment in meta-programming PHP to give it a saner API. This library requires PHP 5.3 and the mbstring module.
 
@@ -123,7 +123,31 @@ Supported primitive types are:
 
 Any piece of data that fails to convert to the right type becomes NULL. This is a quick and easy way to force JSON input to be in the right type.
 
-**Tip:** you can convert any value to any type with `convertValue($value, $type)`. The `->cast()` method is a convenient wrapper around this functionality.
+**Tips:**
+
+- You can convert any value to any type with `convertValue($value, $type)`. The `->cast()` method is a convenient wrapper around this functionality.
+- You can "fix" the types of the properties on any object by casting it to its own type. (e.g. ensure that integers are not secretly strings)
+
+Another useful thing you can do is filter the $_REQUEST array by casting it to a defined type:
+
+      class RequestParams {
+        /** @var string */
+        public $foo = "";
+        /** @var int */
+        public $bar = 1;
+      }  
+      $request = o($_REQUEST)->cast("RequestParams");
+      print_r($request);
+
+When you call that script with ?foo=test it will output:
+
+      O\RequestParams Object
+      (
+        [foo] => test
+        [bar] => 1
+      )
+
+The `foo` parameter is taken from the $_REQUEST array, but the `bar` gets its default value instead from the type definition. If bar was specified, it would automatically get converted to an int if possible (and become NULL otherwise).
 
 Positive input validation
 -------------------------
@@ -132,4 +156,104 @@ As pointed out above, the `o()->cast()` method is a convenient way to force inpu
 
 To this end, php-o implements [JSR-303 (Java Bean Validation)](http://docs.oracle.com/javaee/6/tutorial/doc/gircz.html).
 
-TODO: rest of explanation
+It's easiest to explain using an example:
+
+      class Validatable {
+        /**
+         * @var string
+         * @NotNull
+         * @Size(min=0,max=5)
+         */
+        public $text = "";
+    
+        /**
+         * @var float
+         * @Min(0)
+         */
+        public $positive = 0;
+      }
+      $obj = o(array("text" => "123456", "positive" => -1))->cast("Validatable");
+      $validation = Validator::validate($obj);
+      print_r($validation);
+
+This will output these errors:
+
+      Array
+      (
+          [0] => O\ConstraintViolation Object
+              (
+                  [message] => Size must be between 0 and 5
+                  [constraint] => Size
+                  [rootObject] => O\Validatable Object
+                      (
+                          [text] => 123456
+                          [positive] => -1
+                      )
+                  [propertyPath] => text
+                  [invalidValue] => 123456
+              )
+          [1] => O\ConstraintViolation Object
+              (
+                  [message] => Must be >= 0
+                  [constraint] => Min
+                  [rootObject] => O\Validatable Object
+                      (
+                          [text] => 123456
+                          [positive] => -1
+                      )
+                  [propertyPath] => positive
+                  [invalidValue] => -1
+              )
+      )
+
+In short, the Validator::validate method will perform the checks as specified by the annotation comments for each of the properties. The result is an array of validation errors, this array being empty if all properties are valid.
+
+The supported annotations are those of JSR-303:
+
+- **@Null**: can be used to override an @NotNull in a subclass.
+- **@NotNull**: property does not accept NULL as a value. If you do not specify this, NULL is a valid value (even if it fails other validation rules).
+- **@Valid**: recursively validate this property (for object properties with a type annotation)
+- **@AssertTrue**
+- **@AssertFalse**
+- **@Min(value)**: property must be >= the value
+- **@Max(value)**: property must be <= the value
+- **@Size(min=value,max=value)**: array or string length must fit these constraints (supports specifying just min or max)
+- **@DecimalMin(value)**: same as @Min, but can deal with large numbers
+- **@DecimalMax(value)**: same as @Max, but can deal with large numbers
+- **@Digits(integer=value,fraction=value)**: the specified number must have at most this many integer or fractional digits
+- **@Past**: date must be in the past (supports DateTime instances, date strings and integer timestamps)
+- **@Future**: date must be in the future
+
+The Validator is a pluggable framework. You can easily add your own annotations. Look at the O source code to see how.
+
+Chainables
+----------
+
+There is one more trick up this library's sleeve, and that is the `c()` function. What this function does is wrap an object so that the methods on that object return a chainable object.
+
+That means you can do something like this:
+
+      echo c(s("ababa"))->explode("b")->implode("c");
+      // outputs acaca
+
+In short, you can do jQuery-style chaining of methods.
+
+If at any point, you want to get the object that is inside the chainable, you can use the `->raw()` method:
+
+      $s = c(s("123abcxxx"))->substr(3)->rtrim("x")->raw();
+      // $s === "abc"
+
+You can use the `c()` function on any type, not just the special types provided by O (e.g. on the DateTime type). The return values are converted to smart types if they are primitives like string or int:
+
+      echo c(new \DateTime())->format("Y-m-d")->explode("-")->pop();
+      // contrived example to output the current day
+
+*Notice that we used the `\\` prefix here for `\\DateTime` because the code exists inside the O namespace and PHP forces us to explicitly specify the global namespace to use DateTime.*
+
+There are also some convenient shorthand functions:
+
+- cs() == c(s())
+- ca() == c(a())
+- co() == c(o())
+
+Chainables are smart enough not to accidentally wrap a chainable, so you can go chainable-crazy if you want (`c(c(c()))`) without it causing problems.
