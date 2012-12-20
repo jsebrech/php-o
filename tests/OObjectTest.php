@@ -52,6 +52,17 @@ class OObjectTest extends PHPUnit_Framework_TestCase
     $this->assertEquals("value", $o->key);
   }
   
+  public function testStaticPropsIgnored() {
+    ObjectTest2::$var2 = 1;
+    $o = O\o(array("var1" => 2))->cast("ObjectTest2");
+    $this->assertEquals(1, ObjectTest2::$var2);
+    $this->assertEquals(2, $o->var1);
+    $o = O\o(array("var1" => 3, "var2" => 3))->cast("ObjectTest2");
+    $this->assertEquals(1, ObjectTest2::$var2);
+    $this->assertEquals(3, $o->var2);
+    $this->assertEquals(3, $o->var1);
+  }
+  
 }
 
 class ObjectTest1 {
@@ -79,4 +90,13 @@ class ObjectTest1 {
    * @var ObjectTest1
    */
   public $var5;
+}
+
+class ObjectTest2
+{
+  /** @var int */
+  public $var1 = 0;
+  
+  /** @var int */
+  public static $var2 = 0;
 }

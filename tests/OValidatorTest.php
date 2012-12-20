@@ -44,6 +44,20 @@ class OValidatorTest extends PHPUnit_Framework_TestCase
     $this->assertTrue($result[0]->rootObject === $obj);
   }
   
+  public function testNotEmpty() {
+    $obj = new ValidationTest_NotEmpty();
+    $obj->test = "test";
+    $result = O\Validator::validateProperty($obj, "test");
+    $this->assertEquals("array", gettype($result));
+    $this->assertEquals(0, count($result));
+    $obj->test = "  ";
+    $result = O\Validator::validateProperty($obj, "test");
+    $this->assertEquals("array", gettype($result));
+    $this->assertEquals(1, count($result));
+    $this->assertEquals("NotEmpty", $result[0]->constraint);
+    $this->assertTrue($result[0]->rootObject === $obj);
+  }
+  
   function testAssertTrue() {
     $obj = new ValidationTest_AssertTrue();
     $obj->test = TRUE;
@@ -146,6 +160,14 @@ class ValidationTest_NotNull {
   /**
    * @var string
    * @NotNull
+   */
+  public $test;
+}
+
+class ValidationTest_NotEmpty {
+  /**
+   * @var string
+   * @NotEmpty
    */
   public $test;
 }

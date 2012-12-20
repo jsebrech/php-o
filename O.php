@@ -6,14 +6,44 @@ namespace O;
 // set up environment
 //-----------------------------------------------------------------------------
 
+// verify that output and string handling occurs as UTF-8
 if (!extension_loaded("mbstring")) {
-  echo "mbstring extension not loaded in php.ini";
+  echo "enable the mbstring extension in php.ini".PHP_EOL;
   exit;
+} else if (headers_sent()) {
+  echo "headers already sent, load O.php at the top of the page".PHP_EOL;
+  exit;
+} else {
+  ini_set("default_charset", "UTF-8");
+  mb_internal_encoding("UTF-8");
 };
 
-// do everything in UTF-8
-ini_set("default_charset", "UTF-8");
-mb_internal_encoding("UTF-8");
+// verify that session settings are secure
+if (session_id()) {
+  echo "session must be opened after loading O.php".PHP_EOL;
+  if (ini_get("session.auto_start")) {
+    echo "disable session.auto_start in php.ini".PHP_EOL;
+  };
+  exit;
+} else {
+  // javascript shouldn't be able to see the session cookie
+  ini_set("session.cookie_httponly", "1");
+  // force only cookies to be used
+  ini_set("session.use_trans_sid", "0");
+  ini_set("session.use_only_cookies", "1"); 
+  if (!empty($_SERVER["HTTPS"])) {
+    // a good idea to set this in php.ini
+    ini_set("session.cookie_secure", "1");
+  };
+  // security by obscurity, but there's no downside here
+  session_name("OSID");
+};
+// secure session_start function (overrides built-in)
+function session_start() {
+  \session_start();
+  // rotate session id on every request
+  session_regenerate_id(true);
+}
 
 //-----------------------------------------------------------------------------
 // string and array API's
@@ -322,6 +352,10 @@ class ArrayClass implements \IteratorAggregate {
   
   function reduce($callable, $initial = NULL) {
     return array_reduce($this->a, $callable, $initial);
+  }
+  
+  function filter($callable = "") {
+    return array_filter($this->a, $callable);
   }
   
   function sum() {
@@ -774,7 +808,7 @@ class Validator
       $class = new ReflectionClass($object);
       $property = $class->getProperty($property);
     };
-    if (is_a($property, "ReflectionProperty")) {
+    if (is_a($property, "ReflectionProperty") && $property->isPublic()) {
       $propertyName = $property->getName();
       $value = $object->$propertyName;
       $result = self::validateValue($property->getDeclaringClass(), $property, $value);
@@ -852,6 +886,11 @@ function validate_Null_Message() { return "Must be null"; }
 function validate_NotNull($value) { return $value !== NULL; }
 Validator::addConstraint("NotNull", "O\\validate_NotNull");
 function validate_NotNull_Message() { return "Cannot be null"; }
+
+// @NotEmpty
+function validate_NotEmpty($value) { return (s($value)->trim() != ""); }
+Validator::addConstraint("NotEmpty", "O\\validate_NotEmpty");
+function validate_NotEmpty_Message() { return "Cannot be empty"; }
 
 // @AssertTrue
 function validate_AssertTrue($value) { return $value == TRUE; }
