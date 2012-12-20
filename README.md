@@ -225,7 +225,7 @@ The supported annotations are these:
 - **@Past**: date must be in the past (supports DateTime instances, date strings and integer timestamps)
 - **@Future**: date must be in the future
 
-The Validator is a pluggable framework. You can easily add your own annotations. Look at the *O* source code to see how.
+The Validator is a pluggable framework. You can easily add your own annotations. Look at the O source code to see how.
 
 Chainables
 ----------
@@ -244,7 +244,7 @@ If at any point, you want to get the object that is inside the chainable, you ca
       $s = c(s("123abcxxx"))->substr(3)->rtrim("x")->raw();
       // $s === "abc"
 
-You can use the `c()` function on any type, not just the special types provided by *O* (e.g. on the DateTime type). The return values are converted to smart types if they are primitives like string or array:
+You can use the `c()` function on any type, not just the special types provided by O (e.g. on the DateTime type). The return values are converted to smart types if they are primitives like string or array:
 
       echo c(new \DateTime())->format("Y-m-d")->explode("-")->pop();
       // contrived example to output the current day
@@ -264,7 +264,7 @@ Session handling
 
 Another thing O does for you is set up sessions so they are secure by default.
 
-When you do `session_start()` *O* guarantees the following:
+When you do `session_start()` O guarantees the following:
 
 - The session cookie has the httpOnly flag, and the secure flag if the session was created over HTTPS
 - The session id will not be passed in the URL, but only via cookie
