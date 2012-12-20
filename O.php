@@ -3,7 +3,7 @@
 namespace O;
 
 //-----------------------------------------------------------------------------
-// set up environment
+// set up environment + session handling logic
 //-----------------------------------------------------------------------------
 
 // verify that output and string handling occurs as UTF-8
@@ -43,8 +43,23 @@ function session_start() {
   \session_start();
   // rotate session id on every request
   session_regenerate_id(true);
-}
-
+  // generate an anti-CSRF token
+  if (!isset($_SESSION["O-ANTI-CSRF-TOKEN"])) {
+    $_SESSION["O-ANTI-CSRF-TOKEN"] = md5(uniqid());
+  }; 
+};
+// obtain the anti-CSRF token
+function get_csrf_token() {
+  if (!session_id()) session_start();
+  return $_SESSION["O-ANTI-CSRF-TOKEN"];
+};
+// check that CSRF token was given
+function is_csrf_protected($token = "") {
+  if (empty($token) && isset($_REQUEST["csrftoken"])) {
+    $token = $_REQUEST["csrftoken"];
+  };
+  return $token === get_csrf_token();
+};
 //-----------------------------------------------------------------------------
 // string and array API's
 //-----------------------------------------------------------------------------
@@ -888,7 +903,14 @@ Validator::addConstraint("NotNull", "O\\validate_NotNull");
 function validate_NotNull_Message() { return "Cannot be null"; }
 
 // @NotEmpty
-function validate_NotEmpty($value) { return (s($value)->trim() != ""); }
+function validate_NotEmpty($value) { 
+  if ($value === NULL) return FALSE;
+  if (is_array($value)) {
+    return count($value) > 0;
+  } else {
+    return (s($value)->trim() !== ""); 
+  };
+}
 Validator::addConstraint("NotEmpty", "O\\validate_NotEmpty");
 function validate_NotEmpty_Message() { return "Cannot be empty"; }
 

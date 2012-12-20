@@ -10,57 +10,60 @@ if (!isset($_SESSION["items"])) {
   ))->cast("TodoItem"); 
 };
 
-// list of ids of submitted items
-$ids = ca($_REQUEST)->keys()->filter(
-  function($key) { return s($key)->pos("item-") === 0; })->map(
-  function($key) { return s($key)->substr(5); })->raw();
 $errorMsg = "";
-// read the submitted items and delete / update
-foreach ($ids as $id) {
-  $item = o(array(
-    "id" => $id,
-    "message" => isset($_REQUEST["message-".$id]) ? $_REQUEST["message-".$id] : "",
-    "completed" => isset($_REQUEST["completed-".$id]) ? $_REQUEST["completed-".$id] : FALSE
-  ))->cast("TodoItem");
-  // if item should be deleted
-  if (s($item->message)->trim() == "") {
-    $_SESSION["items"] = a($_SESSION["items"])->filter(
-      function($o) use($id) { return $o->id != $id; }
-    );
-  // if item should be updated
-  } else {
+
+if (is_csrf_protected()) {
+  // list of ids of submitted items
+  $ids = ca($_REQUEST)->keys()->filter(
+    function($key) { return s($key)->pos("item-") === 0; })->map(
+    function($key) { return s($key)->substr(5); })->raw();
+  // read the submitted items and delete / update
+  foreach ($ids as $id) {
+    $item = o(array(
+      "id" => $id,
+      "message" => isset($_REQUEST["message-".$id]) ? $_REQUEST["message-".$id] : "",
+      "completed" => isset($_REQUEST["completed-".$id]) ? $_REQUEST["completed-".$id] : FALSE
+    ))->cast("TodoItem");
+    // if item should be deleted
+    if (s($item->message)->trim() == "") {
+      $_SESSION["items"] = a($_SESSION["items"])->filter(
+        function($o) use($id) { return $o->id != $id; }
+      );
+    // if item should be updated
+    } else {
+      $errors = Validator::validate($item);
+      // save to session if valid
+      if (count($errors) == 0) {
+        foreach ($_SESSION["items"] as $i => $stored) {
+          if ($stored->id === $item->id) {
+            $_SESSION["items"][$i] = $item;      
+          };
+        };
+      } else {
+        $errorMsg = $errors[0]->message;
+      };
+    };
+  };
+  // add an item if needed
+  if (isset($_REQUEST["action-add"])) {
+    $item = o(array(
+      "id" => TodoItem::nextId(),
+      "message" => isset($_REQUEST["new-todo"]) ? $_REQUEST["new-todo"] : "",
+      "completed" => FALSE
+    ))->cast("TodoItem");
     $errors = Validator::validate($item);
     // save to session if valid
     if (count($errors) == 0) {
-      foreach ($_SESSION["items"] as $i => $stored) {
-        if ($stored->id === $item->id) {
-          $_SESSION["items"][$i] = $item;      
-        };
-      };
+      $_SESSION["items"][] = $item;
     } else {
       $errorMsg = $errors[0]->message;
-    };
+    };  
+  // delete all the completed items
+  } else if (isset($_REQUEST["action-clear-completed"])) {
+    $_SESSION["items"] = a($_SESSION["items"])->filter(
+      function($o) { return !$o->completed; }
+    );
   };
-};
-// add an item if needed
-if (isset($_REQUEST["action-add"])) {
-  $item = o(array(
-    "id" => TodoItem::nextId(),
-    "message" => isset($_REQUEST["new-todo"]) ? $_REQUEST["new-todo"] : "",
-    "completed" => FALSE
-  ))->cast("TodoItem");
-  $errors = Validator::validate($item);
-  // save to session if valid
-  if (count($errors) == 0) {
-    $_SESSION["items"][] = $item;
-  } else {
-    $errorMsg = $errors[0]->message;
-  };  
-// delete all the completed items
-} else if (isset($_REQUEST["action-clear-completed"])) {
-  $_SESSION["items"] = a($_SESSION["items"])->filter(
-    function($o) { return !$o->completed; }
-  );
 };
 
 $completedCount = ca($_SESSION["items"])->filter(
@@ -103,6 +106,7 @@ class TodoItem {
 </head>
 <body>
   <form method="POST">
+  <input type="hidden" name="csrftoken" value="<?php echo get_csrf_token(); ?>" />
 	<section id="todoapp">
 		<header id="header">
 			<h1>todos</h1>

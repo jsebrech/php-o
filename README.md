@@ -208,10 +208,11 @@ This will output these errors:
 
 In short, the Validator::validate method will perform the checks as specified by the annotation comments for each of the properties. The result is an array of validation errors, this array being empty if all properties are valid.
 
-The supported annotations are those of JSR-303:
+The supported annotations are these:
 
 - **@Null**: can be used to override an @NotNull in a subclass.
 - **@NotNull**: property does not accept NULL as a value. If you do not specify this, NULL is a valid value (even if it fails other validation rules).
+- **@NotEmpty**: Same as @NotNull, and also string cannot be "", or whitespace and array must have at least one item.
 - **@Valid**: recursively validate this property (for object properties with a type annotation)
 - **@AssertTrue**
 - **@AssertFalse**
@@ -224,7 +225,7 @@ The supported annotations are those of JSR-303:
 - **@Past**: date must be in the past (supports DateTime instances, date strings and integer timestamps)
 - **@Future**: date must be in the future
 
-The Validator is a pluggable framework. You can easily add your own annotations. Look at the O source code to see how.
+The Validator is a pluggable framework. You can easily add your own annotations. Look at the *O* source code to see how.
 
 Chainables
 ----------
@@ -243,7 +244,7 @@ If at any point, you want to get the object that is inside the chainable, you ca
       $s = c(s("123abcxxx"))->substr(3)->rtrim("x")->raw();
       // $s === "abc"
 
-You can use the `c()` function on any type, not just the special types provided by O (e.g. on the DateTime type). The return values are converted to smart types if they are primitives like string or array:
+You can use the `c()` function on any type, not just the special types provided by *O* (e.g. on the DateTime type). The return values are converted to smart types if they are primitives like string or array:
 
       echo c(new \DateTime())->format("Y-m-d")->explode("-")->pop();
       // contrived example to output the current day
@@ -257,3 +258,27 @@ There are also some convenient shorthand functions:
 - co() == c(o())
 
 Chainables are smart enough not to accidentally wrap a chainable, so you can go chainable-crazy if you want (`c(c(c()))`) without it causing problems.
+
+Session handling
+----------------
+
+Another thing O does for you is set up sessions so they are secure by default.
+
+When you do `session_start()` *O* guarantees the following:
+
+- The session cookie has the httpOnly flag, and the secure flag if the session was created over HTTPS
+- The session id will not be passed in the URL, but only via cookie
+- The session name is changed from the default
+- The session id is changed on each request (makes it harder to do something with an intercepted session id)
+
+Additionally, some convenience functionality is provided to protect against CSRF attacks. To use this:
+
+1. Put this code in your form:  
+
+      <input type="hidden" name="csrftoken" value="<?php echo get_csrf_token(); ?>" />
+
+2. Put everything that processes the form inside this if:
+   
+      if (is_csrf_protected()) { ...
+
+While it's not perfect, it should suffice as a basic level of precaution.
