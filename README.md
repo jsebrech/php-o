@@ -275,7 +275,7 @@ Additionally, some convenience functionality is provided to protect against CSRF
 
 1. Put this code in your form:  
 
-      <input type="hidden" name="csrftoken" value="<?php echo get_csrf_token(); ?>" />
+      &lt;input type="hidden" name="csrftoken" value="<?php echo get_csrf_token(); ?>" />
 
 2. Put everything that processes the form inside this if:
    
