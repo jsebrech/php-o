@@ -159,7 +159,7 @@ class TodoItem {
 	</section>
 	</form>
 	<footer id="info">
-		<p><big>Demo for <a href="https://github.com/jsebrech/php-o">php-o</a></big></p>
+		<p style="font-size: 130%;">Demo for <a href="https://github.com/jsebrech/php-o">php-o</a></p>
 		<p>Based on <a href="http://todomvc.com">TodoMVC</a></p>
 	</footer>
 </body>

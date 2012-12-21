@@ -1,7 +1,6 @@
 <?php
 
 include_once dirname(__FILE__)."/../O.php";
-use \O;
 
 class OReflectionTest extends PHPUnit_Framework_TestCase 
 {
@@ -19,7 +18,7 @@ class OReflectionTest extends PHPUnit_Framework_TestCase
   public function testFakePropertyException()
   {
     $reflection = new O\ReflectionClass("ReflectionTest1");
-    $property = $reflection->getProperty("nosuchprop");  
+    $reflection->getProperty("nosuchprop");
   }  
   
   public function testPropertyComment()
@@ -45,8 +44,8 @@ class OReflectionTest extends PHPUnit_Framework_TestCase
     $this->assertEquals("@param string \$two", $param->getDocComment());
     $param = $method->getParameter("one");
     $this->assertNotNull($param);
-    $this->assertNotEquals(FALSE, O\s($param->getDocComment())->pos("@param int \$one"));
-    $this->assertNotEquals(FALSE, O\s($param->getDocComment())->pos("Some text"));
+    $this->assertNotSame(FALSE, O\s($param->getDocComment())->pos("@param int \$one"));
+    $this->assertNotSame(FALSE, O\s($param->getDocComment())->pos("Some text"));
   }
   
   public function testGetType()

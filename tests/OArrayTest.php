@@ -1,7 +1,6 @@
 <?php
 
 include_once dirname(__FILE__)."/../O.php";
-use \O;
 
 class OArrayTest extends PHPUnit_Framework_TestCase 
 {

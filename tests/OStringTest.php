@@ -1,7 +1,6 @@
 <?php
 
 include_once dirname(__FILE__)."/../O.php";
-use \O;
 
 $utf8string = json_decode("\"\u03ba\u03cc\u03c3\u03bc\u03b5\"");;
 

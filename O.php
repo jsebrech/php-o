@@ -72,7 +72,7 @@ class StringClass implements \IteratorAggregate {
   }
   
   function __toString() {
-    return $this->s;
+    return strval($this->s);
   }
   
 // PHP style API
@@ -100,7 +100,7 @@ class StringClass implements \IteratorAggregate {
       return $r;
     } else {
       return explode($delimiter, $this->s, $limit);
-    };
+    }
   }
   function trim($charlist = " \t\n\r\0\x0B") {
     return trim($this->s, $charlist);
@@ -134,9 +134,11 @@ class StringClass implements \IteratorAggregate {
     return str_ireplace($search, $replace, $this->s, $count);
   }
   function preg_match($pattern, &$matches = NULL, $flags = 0, $offset = 0) {
+    if (!is_array($matches)) $matches = array();
     return preg_match($pattern, $this->s, $matches, $flags, $offset);
   }
   function preg_match_all($pattern, &$matches = NULL, $flags = PREG_PATTERN_ORDER, $offset = 0) {
+    if (!is_array($matches)) $matches = array();
     return preg_match_all($pattern, $this->s, $matches, $flags, $offset);
   }
   function preg_replace($pattern , $replacement , $limit = -1, &$count = NULL) {
@@ -173,7 +175,7 @@ class StringClass implements \IteratorAggregate {
   }
   // substr() already implemented for PHP syntax
   function substring($start, $end = NULL) {
-    return $this->substr($start, ($end !== NULL) ? $end-$start : NULL);
+    return $this->substr($start, ($end !== NULL) ? $end-$start : 0xFFFFFFF);
   }
   function toLowerCase() {
     return $this->tolower();
@@ -208,11 +210,6 @@ class StringClass implements \IteratorAggregate {
     return $this->s;
   }
   
-  function attribute() {
-    // TODO: encode for html attribute context
-    return $this->s;
-  }
-  
   function css() {
     // TODO: encode for css context
     return $this->s;
@@ -224,9 +221,12 @@ class StringClass implements \IteratorAggregate {
   }
   
 // other methods
-  
-  // parse type string (phplint / phpdoc syntax)
-  // http://www.icosaedro.it/phplint/phpdoc.html#types
+
+  /**
+   * parse type string (phplint / phpdoc syntax)
+   * http://www.icosaedro.it/phplint/phpdoc.html#types
+   * @return \O\VariableType
+   */
   function parse_type() {
     $type = $this->s;
     $matches = array();
@@ -262,11 +262,7 @@ class StringClass implements \IteratorAggregate {
         $type = "mixed";
       };
     };
-    return o(array(
-      "isArray" => $isArray,
-      "key" => $keyType,
-      "value" => $type
-    ));
+    return new VariableType($isArray, $keyType, $type);
   }
   
   function raw() {
@@ -280,7 +276,25 @@ class StringClass implements \IteratorAggregate {
     
 }
 
-/** @return O\StringClass */
+class VariableType {
+  /** @var bool */
+  public $isArray = FALSE;
+  /** @var string */
+  public $key = "void";
+  /** @var string */
+  public $value = "void";
+
+  public function __construct($isArray = FALSE, $key = "void", $value = "void") {
+    $this->isArray = $isArray;
+    $this->key = $key;
+    $this->value = $value;
+  }
+}
+
+/**
+ * @param $p string
+ * @return \O\StringClass
+ */
 function s($p) {
   return new \O\StringClass($p);
 }
@@ -387,7 +401,10 @@ class ArrayClass implements \IteratorAggregate {
   }
 }
 
-/** @return O\ArrayClass */
+/**
+ * @param string $p
+ * @return \O\ArrayClass
+ */
 function a(&$p) {
   return new \O\ArrayClass($p);
 }
@@ -412,7 +429,7 @@ class ObjectClass implements \IteratorAggregate
       return call_user_func_array(array($this->o, $fn), $args);
     } else if (isset($this->o->$fn)) {
       return call_user_func_array($this->o->$fn, $args);
-    };
+    } else return NULL;
   }
   
   function __get($prop) {
@@ -439,7 +456,7 @@ class ObjectClass implements \IteratorAggregate
       if (class_exists($asType)) {
         if (is_object($this->o)) {
           $a = (array) $this->o;
-          $refl = new ReflectionClass($asType);
+          $refl = new \O\ReflectionClass($asType);
           $props = $refl->getProperties(
             ReflectionProperty::IS_STATIC|ReflectionProperty::IS_PUBLIC);
           $result = new $asType();
@@ -454,12 +471,12 @@ class ObjectClass implements \IteratorAggregate
           return $result;
         } else {
           return NULL;
-        };
+        }
       } else {
         throw new \Exception("Unrecognized type: ".$asType);
-      };
-    };
-  }  
+      }
+    }
+  }
   
   function raw() {
     return $this->o;
@@ -471,7 +488,10 @@ class ObjectClass implements \IteratorAggregate
   }
 }
 
-/** @return O\ObjectClass */
+/**
+ * @param mixed $p
+ * @return \O\ObjectClass
+ */
 function o($p) {
   return new \O\ObjectClass($p);
 }
@@ -485,8 +505,8 @@ function convertType($value, $type) {
       $newVal = array();
       foreach ($value as $key => $item) {
         if ($type->key !== NULL) {
-          $newVal[$this->convertType($key, $type->key)] =
-            $this->convertType($item, $type->value);
+          $newVal[convertType($key, $type->key)] =
+            convertType($item, $type->value);
         } else {
           $newVal[] = convertType($item, $type->value);
         };
@@ -505,7 +525,7 @@ function convertType($value, $type) {
       case "resource": return is_resource($value) ? $value : NULL;
       case "object": return is_object($value) ? $value : o($value)->cast();
       default: return o($value)->cast($type->value);
-    };
+    }
   };
   return NULL;
 }
@@ -524,7 +544,12 @@ class ChainableClass implements \IteratorAggregate
   function __toString() {
     return (string) $this->o;
   }
-  
+
+  /**
+   * @param string $fn
+   * @param array $args
+   * @return mixed|\O\ChainableClass
+   */
   function __call($fn, $args) {
     $result = call_user_func_array(array($this->o, $fn), $args);
     switch (gettype($result)) {
@@ -535,40 +560,66 @@ class ChainableClass implements \IteratorAggregate
       case "object":
         return co($result);
       default:
-        return $result;
-    };
+        if (is_object($result)) {
+          return c($result);
+        } else {
+          return $result;
+        }
+    }
   }
   
   function raw() {
     if (is_object($this->o) && method_exists($this->o, "raw")) {
-      return $this->o->raw();
+      return call_user_func(array($this->o, "raw"));
     } else {
       return $this->o;
-    };
+    }
   }
-  
+
+  /**
+   * @return \Traversable
+   */
   function getIterator() {
-    return $this->o->getIterator();
+    if (method_exists($this->o, "getIterator")) {
+      return call_user_func(array($this->o, "getIterator"));
+    } else {
+      return NULL;
+    }
   }
 }
 
-/** @return O\ChainableClass */
+/**
+ * @param mixed $o
+ * @return \O\ChainableClass
+ */
 function c($o) {
   if ($o instanceof ChainableClass) {
     return $o;
   } else {
     return new ChainableClass($o);
-  };
+  }
 }
-/** @return O\ChainableClass */
+
+/**
+ * @param string $o
+ * @return \O\ChainableClass
+ */
 function cs($o) {
   return c(s($o));
 }
-/** @return O\ChainableClass */
+
+/**
+ * @param array $o
+ * @return \O\ChainableClass
+ */
 function ca($o) {
   return c(a($o));
 }
-/** @return O\ChainableClass */
+
+/**
+ * @param mixed $o
+ * @return \O\ChainableClass
+ */
 function co($o) {
   return c(o($o));
 }
@@ -579,6 +630,10 @@ function co($o) {
 
 class ReflectionClass extends \ReflectionClass
 {
+  /**
+   * @param int $filter
+   * @return \O\ReflectionMethod[]
+   */
   public function getMethods($filter = NULL) {
     $methods = parent::getMethods($filter);
     foreach ($methods as $index => $method) {
@@ -587,11 +642,20 @@ class ReflectionClass extends \ReflectionClass
     };
     return $methods;
   }
-  
+
+  /**
+   * @param string $name
+   * @return \O\ReflectionMethod
+   */
   public function getMethod($name) {
     return new \O\ReflectionMethod($this->getName(), $name);
   }
-  
+
+
+  /**
+   * @param int $filter
+   * @return \O\ReflectionProperty[]
+   */
   public function getProperties($filter = NULL) {
     if ($filter === NULL) {
       $filter = 
@@ -607,11 +671,19 @@ class ReflectionClass extends \ReflectionClass
     };
     return $properties;
   }
-  
+
+  /**
+   * @param string $name
+   * @return \O\ReflectionProperty
+   */
   public function getProperty($name) {
     return new \O\ReflectionProperty($this->getName(), $name);
   }
 
+  /**
+   * @param bool $onlytext
+   * @return string
+   */
   public function getDocComment($onlytext = FALSE) {
     $doc = parent::getDocComment();
     if ($onlytext) {
@@ -643,7 +715,7 @@ class ReflectionProperty extends \ReflectionProperty
       return $matches[1];
     } else {
       return NULL;
-    };
+    }
   }
 }
 
@@ -666,7 +738,7 @@ class ReflectionMethod extends \ReflectionMethod
   public function getParameters() {
     $params = parent::getParameters();
     foreach ($params as $index => $param) {
-      $params[$index] = new O\ReflectionParameter(
+      $params[$index] = new \O\ReflectionParameter(
         array($this->getDeclaringClass()->getName(), $this->getName()), 
         $param->getName());
     };
@@ -693,16 +765,18 @@ class ReflectionParameter extends \ReflectionParameter
         return $part;
       };
     };
+    return "";
   }
   
   public function getDeclaringFunction() {
     $f = parent::getDeclaringFunction();
+    /** @var $f ReflectionMethod */
     if (is_a($f, "ReflectionMethod")) {
       return new \O\ReflectionMethod($f->getDeclaringClass()->getName(), $f->getName());
     } else {
       return $f;
-    };
-  }  
+    }
+  }
   
 }
 
@@ -715,6 +789,7 @@ class Validator
 {
   /**
    * @var string $doc comment of a parameter or property
+   * @return array
    */
   static function getAnnotations($doc) {
     $matches = array();
@@ -760,10 +835,10 @@ class Validator
    * @Valid will validate an object property recursively, 
    * or validate each element in an object[].
    * 
-   * @param string|O\ReflectionClass $class
-   * @param string|O\ReflectionProperty $property
+   * @param string|\O\ReflectionClass $class
+   * @param string|\O\ReflectionProperty $property
    * @param mixed $value
-   * @return O\ConstraintViolation[]
+   * @return \O\ConstraintViolation[]
    */
   static function validateValue($class, $property, $value) {
     // TODO: type validation
@@ -814,8 +889,8 @@ class Validator
   
   /**
    * @var mixed $object
-   * @var string|O\ReflectionProperty $property
-   * @result O\ConstraintViolation[]
+   * @var string|\O\ReflectionProperty $property
+   * @return \O\ConstraintViolation[]
    */
   static function validateProperty($object, $property) {
     $result = array();
@@ -836,7 +911,7 @@ class Validator
   
   /**
    * @var mixed $object
-   * @return O\ConstraintViolation[]
+   * @return \O\ConstraintViolation[]
    */
   static function validate($object) {
     $result = array();
@@ -909,7 +984,7 @@ function validate_NotEmpty($value) {
     return count($value) > 0;
   } else {
     return (s($value)->trim() !== ""); 
-  };
+  }
 }
 Validator::addConstraint("NotEmpty", "O\\validate_NotEmpty");
 function validate_NotEmpty_Message() { return "Cannot be empty"; }
@@ -933,7 +1008,7 @@ function validate_Min($value, $param) {
     return TRUE;
   } else {
     return $value >= $param; 
-  };
+  }
 }
 Validator::addConstraint("Min", "O\\validate_Min");
 function validate_Min_Message($param) { return "Must be >= ".$param; }
@@ -947,7 +1022,7 @@ function validate_Max($value, $param) {
     return TRUE;
   } else {
     return $value <= $param; 
-  };
+  }
 }
 Validator::addConstraint("Max", "O\\validate_Max");
 function validate_Max_Message($param) { return "Must be <= ".$param; }
@@ -958,8 +1033,8 @@ function validate_Size($value, $variables) {
   $max = isset($variables["max"]) ? $variables["max"] : NULL;
   $length = NULL;
   switch (gettype($value)) {
-    case "array": $length = count($value);
-    case "string": $length = s($value)->len();
+    case "array": $length = count($value); break;
+    case "string": $length = s($value)->len(); break;
   };
   return ($length === NULL) || 
     ( (($min === NULL) || ($length >= $min)) &&
@@ -988,8 +1063,8 @@ function validate_DecimalMin($value, $param) {
       return bccomp($value, $param) >= 0;
     } else {
       return floatval($value) >= floatval($param);
-    };
-  };
+    }
+  }
 }
 Validator::addConstraint("DecimalMin", "O\\validate_DecimalMin");
 function validate_DecimalMin_Message($param) { return "Must be >= ".$param; }
@@ -1010,8 +1085,8 @@ function validate_DecimalMax($value, $param) {
       return bccomp($value, $param) <= 0;
     } else {
       return floatval($value) <= floatval($param);
-    };
-  };
+    }
+  }
 }
 Validator::addConstraint("DecimalMax", "O\\validate_DecimalMax");
 function validate_DecimalMax_Message($param) { return "Must be <= ".$param; }
@@ -1030,12 +1105,12 @@ function validate_Digits($value, $variables) {
     $valueDecimals = s($parts[0])->len();
     $valueFraction = isset($parts[1]) ? s($parts[1])->len() : 0;
     return ($valueDecimals == $decimals) && ($valueFraction == $fraction);
-  };
+  }
 }
 Validator::addConstraint("Digits", "O\\validate_Digits");
 function validate_Digits_Message($param) {
-  $decimals = isset($variables["decimals"]) ? intval($variables["decimals"]) : 0;
-  $fraction = isset($variables["fraction"]) ? intval($variables["fraction"]) : 0;
+  $decimals = isset($param["decimals"]) ? intval($param["decimals"]) : 0;
+  $fraction = isset($param["fraction"]) ? intval($param["fraction"]) : 0;
   return "Number must have $decimals decimals and $fraction fractional digits";
 }
 // @Past
@@ -1056,10 +1131,10 @@ function validate_Past($value) {
     };
     $now = new \DateTime();
     return $value < $now;
-  };
+  }
 }
 Validator::addConstraint("Past", "O\\validate_Past");
-function validate_Past_Message($param) { return "Must be in the past"; };
+function validate_Past_Message() { return "Must be in the past"; };
 // @Future
 function validate_Future($value) {
   if ($value === null) return TRUE;
@@ -1078,10 +1153,10 @@ function validate_Future($value) {
     };
     $now = new \DateTime();
     return $value > $now;
-  };
+  }
 }
 Validator::addConstraint("Future", "O\\validate_Future");
-function validate_Future_Message($param) { return "Must be in the future"; };
+function validate_Future_Message() { return "Must be in the future"; };
 // TODO: remaining validator: @Pattern(regex=value,flag=value)
 
 //-----------------------------------------------------------------------------
