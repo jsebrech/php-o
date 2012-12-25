@@ -2,7 +2,7 @@
 
 include_once dirname(__FILE__)."/../O.php";
 
-$utf8string = json_decode("\"\u03ba\u03cc\u03c3\u03bc\u03b5\"");;
+$utf8string = json_decode("\"\u03ba\u03cc\u03c3\u03bc\u03b5\""); // strlen($utf8string) == 10, s()->len() == 5
 
 class OStringTest extends PHPUnit_Framework_TestCase 
 {
@@ -58,7 +58,14 @@ class OStringTest extends PHPUnit_Framework_TestCase
   
   public function testPad()
   {
+    global $utf8string;
     $this->assertEquals("0001", (string) O\s("1")->pad(4, "0", STR_PAD_LEFT));
+    $paddedString = O\s($utf8string)->pad(7);
+    $this->assertEquals(7, O\s($paddedString)->len());
+    $this->assertEquals(12, strlen($paddedString));
+    $paddedString = O\s($utf8string)->pad(15, $utf8string);
+    $this->assertEquals(15, O\s($paddedString)->len());
+    $this->assertEquals(30, strlen($paddedString));
   }
   
   public function testLen()

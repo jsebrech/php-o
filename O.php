@@ -111,9 +111,16 @@ class StringClass implements \IteratorAggregate {
   function rtrim($charlist = " \t\n\r\0\x0B") {
     return rtrim($this->s, $charlist);
   }
-  function pad($pad_length, $pad_string = " ", $pad_type = STR_PAD_RIGHT) {
-    // TODO: make multi-byte aware
-    return str_pad($this->s, $pad_length, $pad_string, $pad_type);
+  function pad($padLength, $padString = " ", $padType = STR_PAD_RIGHT) {
+    // padLength == byte length, so calculate it correctly
+    $padLength += (strlen($this->s) - $this->len());
+    $padStringByteToCharRatio = strlen($padString) / mb_strlen($padString);
+    if ($padStringByteToCharRatio > 1) {
+      $charsToAdd = ($padLength - strlen($this->s));
+      $padLength -= $charsToAdd;
+      $padLength += ceil($charsToAdd * $padStringByteToCharRatio);
+    };
+    return str_pad($this->s, $padLength, $padString, $padType);
   }
   function len() {
     return mb_strlen($this->s);
