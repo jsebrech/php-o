@@ -211,10 +211,15 @@ class StringClass implements \IteratorAggregate {
     $s = s($s)->replace("&apos;", "&#039;");
     return $s;
   }
-  
+
+  // secure encode for <script> context
   function script() {
-    // TODO: encode for <script> context
-    return $this->s;
+    return json_encode($this->s, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
+  }
+
+  // secure encode for JSON context
+  function json() {
+    return $this->script();
   }
   
   function css() {

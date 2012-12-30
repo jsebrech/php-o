@@ -149,7 +149,12 @@ class OStringTest extends PHPUnit_Framework_TestCase
     $s = O\s("&'\"<>/")->html();
     $this->assertEquals("&amp;&#039;&quot;&lt;&gt;&#x2F;", $s);
   }
-  
+
+  public function testScript() {
+    $s = json_decode("\"<&\u2028\"");
+    $r = O\s($s)->script();
+    $this->assertEquals("\"\\u003C\\u0026\\u2028\"", $r);
+  }
   public function testIterable() {
     $s = "abc";
     $a = array();
