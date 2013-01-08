@@ -268,11 +268,6 @@ class StringClass implements \IteratorAggregate {
     return $this->s;
   }
   
-  function url() {
-    // TODO: encode for url parameter context
-    return $this->s;
-  }
-  
 // other methods
 
   /**
