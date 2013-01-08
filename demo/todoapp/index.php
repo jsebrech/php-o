@@ -18,6 +18,7 @@ if ($session->isCSRFProtected()) {
   $ids = ca($_REQUEST)->keys()->filter(
     function($key) { return s($key)->pos("item-") === 0; })->map(
     function($key) { return s($key)->substr(5); })->raw();
+
   // read the submitted items and delete / update
   foreach ($ids as $id) {
     $item = o(array(
@@ -45,6 +46,7 @@ if ($session->isCSRFProtected()) {
       };
     };
   };
+
   // add an item if needed
   if (isset($_REQUEST["action-add"])) {
     $item = o(array(
