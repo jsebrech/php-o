@@ -1,18 +1,19 @@
 <?php namespace O; include "../../O.php";
 
-session_start();
-if (!isset($_SESSION["items"])) {
+$session = new Session();
+
+if (!is_array($session->items)) {
 // if no tasks yet, create one
-  $_SESSION["items"][] = o(array(
+  $session->items = array(o(array(
     "id" => TodoItem::nextId(),
     "message" => "Create a demo app",
     "completed" => TRUE
-  ))->cast("TodoItem"); 
+  ))->cast("TodoItem"));
 };
 
 $errorMsg = "";
 
-if (is_csrf_protected()) {
+if ($session->isCSRFProtected()) {
   // list of ids of submitted items
   $ids = ca($_REQUEST)->keys()->filter(
     function($key) { return s($key)->pos("item-") === 0; })->map(
@@ -26,7 +27,7 @@ if (is_csrf_protected()) {
     ))->cast("TodoItem");
     // if item should be deleted
     if (s($item->message)->trim() == "") {
-      $_SESSION["items"] = a($_SESSION["items"])->filter(
+      $session->items = a($session->items)->filter(
         function($o) use($id) { return $o->id != $id; }
       );
     // if item should be updated
@@ -34,9 +35,9 @@ if (is_csrf_protected()) {
       $errors = Validator::validate($item);
       // save to session if valid
       if (count($errors) == 0) {
-        foreach ($_SESSION["items"] as $i => $stored) {
+        foreach ($session->items as $i => $stored) {
           if ($stored->id === $item->id) {
-            $_SESSION["items"][$i] = $item;      
+            $session->items[$i] = $item;
           };
         };
       } else {
@@ -54,22 +55,22 @@ if (is_csrf_protected()) {
     $errors = Validator::validate($item);
     // save to session if valid
     if (count($errors) == 0) {
-      $_SESSION["items"][] = $item;
+      $session->items[] = $item;
     } else {
       $errorMsg = $errors[0]->message;
     };  
   // delete all the completed items
   } else if (isset($_REQUEST["action-clear-completed"])) {
-    $_SESSION["items"] = a($_SESSION["items"])->filter(
+    $session->items = a($session->items)->filter(
       function($o) { return !$o->completed; }
     );
   };
 };
 
-$completedCount = ca($_SESSION["items"])->filter(
+$completedCount = ca($session->items)->filter(
   function($o) { return $o->completed; }
   )->count();
-$todoCount = count($_SESSION["items"]) - $completedCount;
+$todoCount = count($session->items) - $completedCount;
 
 class TodoItem {
   /** 
@@ -88,10 +89,11 @@ class TodoItem {
   public $completed = FALSE;
   
   public static function nextId() {
-    if (!isset($_SESSION["nextItemID"])) {
-      $_SESSION["nextItemID"] = 0;
+    $session = new Session();
+    if (!isset($session->nextItemID)) {
+      $session->nextItemID = 0;
     };
-    return $_SESSION["nextItemID"]++;
+    return $session->nextItemID++;
   }
 }
 
@@ -106,7 +108,7 @@ class TodoItem {
 </head>
 <body>
   <form method="POST">
-  <input type="hidden" name="csrftoken" value="<?php echo get_csrf_token(); ?>" />
+  <input type="hidden" name="csrftoken" value="<?php echo $session->getCSRFToken(); ?>" />
 	<section id="todoapp">
 		<header id="header">
 			<h1>todos</h1>
@@ -117,7 +119,7 @@ class TodoItem {
 		<!-- This section should be hidden by default and shown when there are todos -->
 		<section id="main">
 			<ul id="todo-list">
-			<?php foreach($_SESSION["items"] as $item) { ?>
+			<?php foreach($session->items as $item) { ?>
 				<li class="<?php echo $item->completed ? "completed" : ""; ?>">
 					<div class="view">
 					  <input type="hidden" 
@@ -142,7 +144,7 @@ class TodoItem {
 		  <input type="submit" 
 		         name="action-save" 
 		         class="footer-btn"
-		         style="<?php echo count($_SESSION["items"]) ? "" : "display:none;"; ?>"  
+		         style="<?php echo count($session->items) ? "" : "display:none;"; ?>"
 		         value="Save changes" />
 			<!-- This should be `0 items left` by default -->
 			<span id="todo-count"><?php 

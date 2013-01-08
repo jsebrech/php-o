@@ -18,6 +18,12 @@ if (!extension_loaded("mbstring")) {
   mb_internal_encoding("UTF-8");
 };
 
+// verify that magic quotes are disabled
+if (get_magic_quotes_gpc()) {
+   echo "disable magic_quotes_gpc in php.ini".PHP_EOL;
+   exit;
+}
+
 // verify that session settings are secure
 if (session_id()) {
   echo "session must be opened after loading O.php".PHP_EOL;
@@ -28,7 +34,7 @@ if (session_id()) {
 } else {
   // javascript shouldn't be able to see the session cookie
   ini_set("session.cookie_httponly", "1");
-  // force only cookies to be used
+  // url's should never contain session id's
   ini_set("session.use_trans_sid", "0");
   ini_set("session.use_only_cookies", "1"); 
   if (!empty($_SERVER["HTTPS"])) {
@@ -60,6 +66,41 @@ function is_csrf_protected($token = "") {
   };
   return $token === get_csrf_token();
 };
+
+class Session {
+  function __construct() {
+    if (!session_id()) session_start();
+  }
+
+  function getCSRFToken() {
+    return get_csrf_token();
+  }
+
+  function isCSRFProtected($token = "") {
+    return is_csrf_protected($token);
+  }
+
+  function &__get($prop) {
+    if (isset($_SESSION[$prop])) {
+      return $_SESSION[$prop];
+    } else {
+      $null = NULL;
+      return $null; // must return reference to variable
+    }
+  }
+
+  function __set($prop, $value) {
+    return $_SESSION[$prop] = $value;
+  }
+
+  function __isset($prop) {
+    return isset($_SESSION[$prop]);
+  }
+
+  function __unset($prop) {
+    unset($_SESSION[$prop]);
+  }
+}
 //-----------------------------------------------------------------------------
 // string and array API's
 //-----------------------------------------------------------------------------

@@ -282,3 +282,12 @@ Additionally, some convenience functionality is provided to protect against CSRF
       if (is_csrf_protected()) { ...
 
 While it's not perfect, it should suffice as a basic level of precaution.
+
+There's also a Session wrapper class to give it an OO taste:
+
+      $session = new Session();
+      echo $session->foo; // == $_SESSION["foo"], isset implicitly performed
+      echo $session->getCSRFToken(); // == get_csrf_token();
+      if (!$session->isCSRFProtected()) die(); // == is_csrf_protected();
+
+
