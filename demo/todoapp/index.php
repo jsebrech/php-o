@@ -46,7 +46,6 @@ if ($session->isCSRFProtected()) {
       };
     };
   };
-
   // add an item if needed
   if (isset($_REQUEST["action-add"])) {
     $item = o(array(
