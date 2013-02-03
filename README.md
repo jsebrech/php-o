@@ -269,7 +269,7 @@ When you do `session_start()` O guarantees the following:
 - The session cookie has the httpOnly flag, and the secure flag if the session was created over HTTPS
 - The session id will not be passed in the URL, but only via cookie
 - The session name is changed from the default
-- The session id is changed on each request (makes it harder to do something with an intercepted session id)
+- The session id is changed on the first request to prevent session fixation
 
 Additionally, some convenience functionality is provided to protect against CSRF attacks. To use this:
 
@@ -290,4 +290,8 @@ There's also a Session wrapper class to give it an OO taste:
       echo $session->getCSRFToken(); // == get_csrf_token();
       if (!$session->isCSRFProtected()) die(); // == is_csrf_protected();
 
+Templating
+----------
+
+O uses PTE (PHP as a Template Engine). See the demo app's usage of the "render" method on the o() object for more info.
 

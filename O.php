@@ -47,17 +47,19 @@ if (session_id()) {
 // secure session_start function (overrides built-in)
 function session_start() {
   \session_start();
-  // rotate session id on every request
-  session_regenerate_id(true);
+  // rotate session id on first request in session
+  if (!isset($_SESSION["__O_SESSION_VALIDATED"])) {
+    session_regenerate_id(true);
+  };
   // generate an anti-CSRF token
-  if (!isset($_SESSION["O-ANTI-CSRF-TOKEN"])) {
-    $_SESSION["O-ANTI-CSRF-TOKEN"] = md5(uniqid());
+  if (!isset($_SESSION["__O_ANTI_CSRF_TOKEN"])) {
+    $_SESSION["__O_ANTI_CSRF_TOKEN"] = md5(uniqid());
   }; 
 };
 // obtain the anti-CSRF token
 function get_csrf_token() {
   if (!session_id()) session_start();
-  return $_SESSION["O-ANTI-CSRF-TOKEN"];
+  return $_SESSION["__O_ANTI_CSRF_TOKEN"];
 };
 // check that CSRF token was given
 function is_csrf_protected($token = "") {
@@ -537,6 +539,7 @@ class ObjectClass implements \IteratorAggregate
 
   function render($template) {
     extract((array) $this->o);
+    /** @noinspection PhpIncludeInspection */
     include $template;
   }
 }
