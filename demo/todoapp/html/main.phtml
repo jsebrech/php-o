@@ -1,0 +1,69 @@
+<?php namespace O; ?>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>TodoPHP</title>
+  <link rel="stylesheet" href="css/base.css">
+</head>
+<body>
+<form method="POST">
+  <input type="hidden" name="csrftoken" value="<?= $session->getCSRFToken(); ?>" />
+  <section id="todoapp">
+    <header id="header">
+      <h1>todos</h1>
+      <input type="submit" class="add" name="action-add" value="+" />
+      <input id="new-todo" name="new-todo" type="text" placeholder="What needs to be done?" autofocus>
+      <div class="error"><?= s($errorMsg)->html(); ?></div>
+    </header>
+    <!-- This section should be hidden by default and shown when there are todos -->
+    <section id="main">
+      <ul id="todo-list">
+        <?php foreach($session->items as $item) { ?>
+        <li class="<?= $item->completed ? "completed" : ""; ?>">
+          <div class="view">
+            <input type="hidden"
+                   name="item-<?= $item->id; ?>"
+                   value="1" />
+            <input class="toggle"
+                   name="completed-<?= $item->id; ?>"
+                   type="checkbox"
+              <?php echo $item->completed ? "checked" : ""; ?> />
+            <input class="edit"
+                   name="message-<?= $item->id; ?>"
+                   type="text"
+                   maxlength="200"
+                   value="<?= s($item->message)->html(); ?>">
+          </div>
+        </li>
+        <?php }; ?>
+      </ul>
+    </section>
+    <!-- This footer should hidden by default and shown when there are todos -->
+    <footer id="footer">
+      <input type="submit"
+             name="action-save"
+             class="footer-btn"
+             style="<?= count($session->items) ? "" : "display:none;"; ?>"
+             value="Save changes" />
+      <!-- This should be `0 items left` by default -->
+			<span id="todo-count"><?php
+        if ($todoCount == 1) {
+          echo "<strong>1</strong> item left";
+        } else {
+          echo "<strong>".$todoCount."</strong> items left";
+        };
+        ?></span>
+      <input type="submit" name="action-clear-completed"
+             class="footer-btn" style="<?= $completedCount ? "" : "display:none"; ?>"
+             value="Clear completed (<?= $completedCount; ?>)" />
+    </footer>
+  </section>
+</form>
+<footer id="info">
+  <p style="font-size: 130%;">Demo for <a href="https://github.com/jsebrech/php-o">php-o</a></p>
+  <p>Based on <a href="http://todomvc.com">TodoMVC</a></p>
+</footer>
+</body>
+</html>

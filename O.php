@@ -534,6 +534,11 @@ class ObjectClass implements \IteratorAggregate
     $o = new \ArrayObject($this->o);
     return $o->getIterator();
   }
+
+  function render($template) {
+    extract((array) $this->o);
+    include $template;
+  }
 }
 
 /**
