@@ -73,6 +73,12 @@ $completedCount = ca($session->items)->filter(
   )->count();
 $todoCount = count($session->items) - $completedCount;
 
+o(compact(
+  "session", "errorMsg", "completedCount", "todoCount"
+))->render("html/main.phtml");
+
+exit;
+
 class TodoItem {
   /** 
    * @var int 
@@ -97,7 +103,3 @@ class TodoItem {
     return $session->nextItemID++;
   }
 }
-
-o(compact(
-  "session", "errorMsg", "completedCount", "todoCount"
-))->render("html/main.phtml");
