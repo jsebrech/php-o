@@ -50,6 +50,7 @@ function session_start() {
   // rotate session id on first request in session
   if (!isset($_SESSION["__O_SESSION_VALIDATED"])) {
     session_regenerate_id(true);
+    $_SESSION["__O_SESSION_VALIDATED"] = TRUE;
   };
   // generate an anti-CSRF token
   if (!isset($_SESSION["__O_ANTI_CSRF_TOKEN"])) {
