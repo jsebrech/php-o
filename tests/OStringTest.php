@@ -164,4 +164,14 @@ class OStringTest extends PHPUnit_Framework_TestCase
     $this->assertEquals(3, count($a));
     $this->assertEquals("c", $a[2]);
   }
+
+  public function testArrayIndexing() {
+    $s = "abcd";
+    $obj = O\s($s);
+    $this->assertEquals("c", $obj[2]);
+    $obj[2] = "e";
+    $this->assertEquals("abed", $obj->raw());
+    $this->assertTrue(isset($obj[3]));
+    $this->assertFalse(isset($obj[4]));
+  }
 }

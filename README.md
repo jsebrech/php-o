@@ -28,6 +28,11 @@ Let's start with the **`s()`** function, which is used to add methods to a strin
 - And similarly: `->trim()`, `->ltrim()`, `->rtrim()`, `->pad()`, `->len()`, `->tolower()`, `->toupper()`, `->substr()`, `->replace()`, `->ireplace()`, `->preg_match()`, `->preg_match_all()`, `->preg_replace()`, `->in_array()`.
 - Finally, `->html()` is a secure wrapper around `html_special_chars()`.
 
+The array indexing operator is supported:
+
+- In PHP 5.3: `$s = s("abc"); echo $s[2]; // "c"`
+- In PHP 5.4: `echo s("abc")[2]; // "c"`
+
 Basically, this is the standard PHP string API, with these benefits:
 
 - Method syntax removes haystack/needle confusion.
@@ -42,27 +47,25 @@ Implemented methods are: `->count()`, `->has()` (instead of `in_array()`), `->se
 
 **Example of the `s()` function, string similarity algorithm:**
 
-      // adapted from 
+      // adapted from
       // http://cambiatablog.wordpress.com/2011/03/25/algorithm-for-string-similarity-better-than-levenshtein-and-similar_text/
       function stringCompare($a, $b) {
-        $lengthA = s($a)->len();
-        $lengthB = s($b)->len();
+        $a = s($a); $b = s($b);
         $i = 0;
         $segmentCount = 0;
         $segments = array();
         $segment = '';
-        while ($i < $lengthA) {
-          $char = s($a)->substr($i, 1);
-          if (s($b)->pos($char) !== FALSE) {
-            $segment = $segment.$char;
-            if (s($b)->pos($segment) !== FALSE) {
+        while ($i < $a->len()) {
+          if ($b->pos($a[$i]) !== FALSE) {
+            $segment = $segment.$a[$i];
+            if ($b->pos($segment) !== FALSE) {
               $segmentPosA = $i - s($segment)->len() + 1;
-              $segmentPosB = s($b)->pos($segment);
+              $segmentPosB = $b->pos($segment);
               $positionDiff = abs($segmentPosA - $segmentPosB);
-              $positionFactor = ($lengthA - $positionDiff) / $lengthB;
-              $lengthFactor = s($segment)->len()/$lengthA;
-              $segments[$segmentCount] = array( 
-                'segment' => $segment, 
+              $positionFactor = ($a->len() - $positionDiff) / $b->len();
+              $lengthFactor = s($segment)->len()/$a->len();
+              $segments[$segmentCount] = array(
+                'segment' => $segment,
                 'score' => ($positionFactor * $lengthFactor)
               );
             } else {
@@ -80,9 +83,9 @@ Implemented methods are: `->count()`, `->has()` (instead of `in_array()`), `->se
         $totalScore = a(a($segments)->map($getScoreFn))->sum();
         return $totalScore;
       }
-      echo stringCompare("joeri", "jori"); // 0.9 
+      echo stringCompare("joeri", "jori"); // 0.9
       $looksLikeO = mb_convert_encoding("&#x213A;", "UTF-8", "HTML-ENTITIES");
-      echo stringCompare("joeri", "j".$looksLikeO."eri"); // 0.8   
+      echo stringCompare("joeri", "j".$looksLikeO."eri"); // 0.8
 
 Note that the last line proves that the `s()` methods are UTF-8 aware, as 0.8 means a difference of one character.
 

@@ -108,7 +108,7 @@ class Session {
 // string and array API's
 //-----------------------------------------------------------------------------
 
-class StringClass implements \IteratorAggregate {
+class StringClass implements \IteratorAggregate, \ArrayAccess {
   private $s;
   
   function __construct($s) {
@@ -270,7 +270,33 @@ class StringClass implements \IteratorAggregate {
     // TODO: encode for css context
     return $this->s;
   }
-  
+
+// IteratorAggregate
+
+  function getIterator() {
+    $o = new \ArrayObject($this->explode(""));
+    return $o->getIterator();
+  }
+
+// ArrayAccess
+
+  function offsetExists($offset) {
+    return $offset < $this->len();
+  }
+
+  function offsetGet($offset) {
+    return $this->substr($offset, 1);
+  }
+
+  function offsetSet($offset, $value) {
+    $char = s($value)->substr(0, 1);
+    $this->s = $this->substr(0, $offset) . $char . $this->substr($offset + 1);
+  }
+
+  function offsetUnset($offset) {
+    $this->s = $this->substr(0, $offset);
+  }
+
 // other methods
 
   /**
@@ -319,12 +345,7 @@ class StringClass implements \IteratorAggregate {
   function raw() {
     return $this->s;
   }
-  
-  function getIterator() {
-    $o = new \ArrayObject($this->explode(""));
-    return $o->getIterator();
-  }
-    
+
 }
 
 class VariableType {
@@ -347,12 +368,16 @@ class VariableType {
  * @return \O\StringClass
  */
 function s($p) {
-  return new \O\StringClass($p);
+  if ($p instanceof \O\StringClass) {
+    return $p;
+  } else {
+    return new \O\StringClass($p);
+  }
 }
 
 //-----------------------------------------------------------------------------
 
-class ArrayClass implements \IteratorAggregate {
+class ArrayClass implements \IteratorAggregate, \ArrayAccess {
   private $a;
   
   function __construct(&$a) {
@@ -445,11 +470,34 @@ class ArrayClass implements \IteratorAggregate {
   function raw() {
     return $this->a;
   }
+
+// IteratorAggregate
   
   function getIterator() {
     $o = new \ArrayObject($this->a);
     return $o->getIterator();
   }
+
+// ArrayAccess
+
+// ArrayAccess
+
+  function offsetExists($offset) {
+    return isset($this->a[$offset]);
+  }
+
+  function offsetGet($offset) {
+    return $this->a[$offset];
+  }
+
+  function offsetSet($offset, $value) {
+    $this->a[$offset] = $value;
+  }
+
+  function offsetUnset($offset) {
+    unset($this->a[$offset]);
+  }
+
 }
 
 /**
@@ -457,12 +505,16 @@ class ArrayClass implements \IteratorAggregate {
  * @return \O\ArrayClass
  */
 function a(&$p) {
-  return new \O\ArrayClass($p);
+  if ($p instanceof \O\ArrayClass) {
+    return $p;
+  } else {
+    return new \O\ArrayClass($p);
+  }
 }
 
 //-----------------------------------------------------------------------------
 
-class ObjectClass implements \IteratorAggregate
+class ObjectClass implements \IteratorAggregate, \ArrayAccess
 {
   private $o;
 
@@ -532,17 +584,38 @@ class ObjectClass implements \IteratorAggregate
   function raw() {
     return $this->o;
   }
-  
-  function getIterator() {
-    $o = new \ArrayObject($this->o);
-    return $o->getIterator();
-  }
 
   function render($template) {
     extract((array) $this->o);
     /** @noinspection PhpIncludeInspection */
     include $template;
   }
+
+// IteratorAggregate
+  
+  function getIterator() {
+    $o = new \ArrayObject($this->o);
+    return $o->getIterator();
+  }
+
+// ArrayAccess
+
+  function offsetExists($offset) {
+    return isset($this->o[$offset]);
+  }
+
+  function offsetGet($offset) {
+    return $this->o[$offset];
+  }
+
+  function offsetSet($offset, $value) {
+    $this->o[$offset] = $value;
+  }
+
+  function offsetUnset($offset) {
+    unset($this->o[$offset]);
+  }
+
 }
 
 /**
@@ -550,7 +623,11 @@ class ObjectClass implements \IteratorAggregate
  * @return \O\ObjectClass
  */
 function o($p) {
-  return new \O\ObjectClass($p);
+  if ($p instanceof \O\ObjectClass) {
+    return $p;
+  } else {
+    return new \O\ObjectClass($p);
+  }
 }
 
 // supports types from phplint/phpdoc
@@ -590,7 +667,7 @@ function convertType($value, $type) {
 // Chainable, allows chaining methods together
 //-----------------------------------------------------------------------------
 
-class ChainableClass implements \IteratorAggregate
+class ChainableClass implements \IteratorAggregate, \ArrayAccess
 {
   private $o;
 
@@ -602,29 +679,32 @@ class ChainableClass implements \IteratorAggregate
     return (string) $this->o;
   }
 
+  private static function asChainable($p) {
+    switch (gettype($p)) {
+      case "string":
+        return cs($p);
+      case "array":
+        return ca($p);
+      case "object":
+        return co($p);
+      default:
+        if (is_object($p)) {
+          return c($p);
+        } else {
+          return $p;
+        }
+    }
+  }
+
   /**
    * @param string $fn
    * @param array $args
    * @return mixed|\O\ChainableClass
    */
   function __call($fn, $args) {
-    $result = call_user_func_array(array($this->o, $fn), $args);
-    switch (gettype($result)) {
-      case "string":
-        return cs($result);
-      case "array":
-        return ca($result);
-      case "object":
-        return co($result);
-      default:
-        if (is_object($result)) {
-          return c($result);
-        } else {
-          return $result;
-        }
-    }
+    return self::asChainable(call_user_func_array(array($this->o, $fn), $args));
   }
-  
+
   function raw() {
     if (is_object($this->o) && method_exists($this->o, "raw")) {
       return call_user_func(array($this->o, "raw"));
@@ -632,6 +712,8 @@ class ChainableClass implements \IteratorAggregate
       return $this->o;
     }
   }
+
+// IteratorAggregate
 
   /**
    * @return \Traversable
@@ -643,6 +725,25 @@ class ChainableClass implements \IteratorAggregate
       return NULL;
     }
   }
+
+// ArrayAccess
+
+  function offsetExists($offset) {
+    return isset($this->o[$offset]);
+  }
+
+  function offsetGet($offset) {
+    return self::asChainable($this->o[$offset]);
+  }
+
+  function offsetSet($offset, $value) {
+    $this->o[$offset] = $value;
+  }
+
+  function offsetUnset($offset) {
+    unset($this->o[$offset]);
+  }
+
 }
 
 /**
