@@ -20,24 +20,9 @@
     <!-- This section should be hidden by default and shown when there are todos -->
     <section id="main">
       <ul id="todo-list">
-        <?php foreach($session->items as $item) { ?>
-        <li class="<?= $item->completed ? "completed" : ""; ?>">
-          <div class="view">
-            <input type="hidden"
-                   name="item-<?= $item->id; ?>"
-                   value="1" />
-            <input class="toggle"
-                   name="completed-<?= $item->id; ?>"
-                   type="checkbox"
-              <?php echo $item->completed ? "checked" : ""; ?> />
-            <input class="edit"
-                   name="message-<?= $item->id; ?>"
-                   type="text"
-                   maxlength="200"
-                   value="<?= s($item->message)->html(); ?>">
-          </div>
-        </li>
-        <?php }; ?>
+        <?php
+        foreach($session->items as $item) { o($item)->render("html/item.phtml"); };
+        ?>
       </ul>
     </section>
     <!-- This footer should hidden by default and shown when there are todos -->

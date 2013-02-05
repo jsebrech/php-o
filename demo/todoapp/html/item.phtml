@@ -1,0 +1,17 @@
+<?php namespace O; ?>
+<li class="<?= $completed ? "completed" : ""; ?>">
+  <div class="view">
+    <input type="hidden"
+           name="item-<?= $id; ?>"
+           value="1" />
+    <input class="toggle"
+           name="completed-<?= $id; ?>"
+           type="checkbox"
+      <?php echo $completed ? "checked" : ""; ?> />
+    <input class="edit"
+           name="message-<?= $id; ?>"
+           type="text"
+           maxlength="200"
+           value="<?= s($message)->html(); ?>">
+  </div>
+</li>
