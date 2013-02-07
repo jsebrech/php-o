@@ -266,11 +266,6 @@ class StringClass implements \IteratorAggregate, \ArrayAccess {
     return $this->script();
   }
   
-  function css() {
-    // TODO: encode for css context
-    return $this->s;
-  }
-
 // IteratorAggregate
 
   function getIterator() {
@@ -466,6 +461,10 @@ class ArrayClass implements \IteratorAggregate, \ArrayAccess {
   function sum() {
     return array_sum($this->a);
   }
+
+  function end() {
+    return end($this->a);
+  }
   
   function raw() {
     return $this->a;
@@ -633,6 +632,7 @@ function o($p) {
 // supports types from phplint/phpdoc
 // http://www.icosaedro.it/phplint/phpdoc.html#types
 function convertType($value, $type) {
+  if ($value === NULL) return $value;
   $type = s($type)->parse_type();
   if ($type->isArray) {
     if (is_array($value)) {
@@ -999,11 +999,15 @@ class Validator
    * @return \O\ConstraintViolation[]
    */
   static function validateValue($class, $property, $value) {
-    // TODO: type validation
     $result = array();
     if (is_string($property)) {
       $class = new ReflectionClass($class);
       $property = $class->getProperty($property);
+    };
+    $converted = convertType($value, $property->getType());
+    if ((gettype($converted) != gettype($value)) || ($converted != $value)) {
+      $result[] = new ConstraintViolation(
+        "Property type mismatch", "type", NULL, $property->getName(), $value);
     };
     $constraints = self::getAnnotations($property->getDocComment(TRUE));
     foreach ($constraints as $constraint => $param) {
