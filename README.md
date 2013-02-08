@@ -252,7 +252,7 @@ You can use the `c()` function on any type, not just the special types provided 
       echo c(new \DateTime())->format("Y-m-d")->explode("-")->pop();
       // contrived example to output the current day
 
-*Notice that we used the `\\` prefix here for `\\DateTime` because the code exists inside the O namespace and PHP forces us to explicitly specify the global namespace to use DateTime.*
+*Notice that we used the `\` prefix here for `\DateTime` because the code exists inside the O namespace and PHP forces us to explicitly specify the global namespace to use DateTime.*
 
 There are also some convenient shorthand functions:
 
