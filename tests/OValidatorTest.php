@@ -1,6 +1,6 @@
 <?php
 
-include_once dirname(__FILE__)."/../O.php";
+include_once realpath(dirname(__FILE__)."/../core/Validator.php");
 
 class OValidatorTest extends PHPUnit_Framework_TestCase 
 {

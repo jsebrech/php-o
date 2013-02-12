@@ -298,3 +298,12 @@ Templating
 
 O uses PTE (PHP as a Template Engine). See the demo app's usage of the "render" method on the o() object for more info.
 
+Separate elements
+-----------------
+
+Each of the different pieces can be included separately.
+
+For example, to use just the s() function:
+
+      include("path/to/o/core/StringClass.php");
+      echo O\s("foo")->replace("foo", "bar");

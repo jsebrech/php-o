@@ -1,6 +1,6 @@
 <?php
 
-include_once dirname(__FILE__)."/../O.php";
+include_once realpath(dirname(__FILE__)."/../core/StringClass.php");
 
 $utf8string = json_decode("\"\u03ba\u03cc\u03c3\u03bc\u03b5\""); // strlen($utf8string) == 10, s()->len() == 5
 
