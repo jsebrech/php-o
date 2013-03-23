@@ -2,8 +2,6 @@
 
 namespace O;
 
-// TODO: use proper autoloader
-
 $classPath = realpath(dirname(__FILE__)."/core");
 
 // Session
