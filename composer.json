@@ -1,0 +1,20 @@
+{
+    "name": "jsebrech/o",
+    "description": "O-syntax for PHP",
+    "homepage": "https://github.com/jsebrech/php-o",
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "Joeri Sebrechts",
+            "email": "joeri@sebrechts.net"
+        }
+    ],
+    "autoload": {
+        "psr-0": {
+            "O": "core/"
+        }
+    },
+    "require": {
+        "ext-mbstring": "*"
+    }
+}
