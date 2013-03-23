@@ -296,7 +296,7 @@ There's also a Session wrapper class to give it an OO taste:
 Templating
 ----------
 
-O uses PTE (PHP as a Template Engine). See the demo app's usage of the "render" method on the o() object for more info.
+O uses PTE (PHP as a Template Engine). See the [demo app](https://github.com/jsebrech/o-demo)'s usage of the "render" method on the o() object for more info.
 
 Separate elements
 -----------------
