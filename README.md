@@ -9,7 +9,7 @@ To start using it, include this at the top of your page:
 
     <?php namespace O; include "O.php";
 
-Or, use composer to install "jsebrech/o".
+You can use composer to install "jsebrech/o".
 
 Letter soup
 -----------
