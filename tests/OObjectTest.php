@@ -61,6 +61,14 @@ class OObjectTest extends PHPUnit_Framework_TestCase
     $this->assertEquals(3, $o->var2);
     $this->assertEquals(3, $o->var1);
   }
+
+  public function testClear() {
+    $obj = O\o(new ObjectTest1());
+    $obj->var1 = 10;
+    $this->assertTrue(isset($obj->var1));
+    $obj->clear();
+    $this->assertFalse(isset($obj->var1));
+  }
   
 }
 

@@ -145,4 +145,12 @@ class OArrayTest extends PHPUnit_Framework_TestCase
     };
     $this->assertEquals("abc", $str);
   }
+
+  public function testClear() {
+    $arr = array("a", "b", "c");
+    $obj = O\a($arr);
+    $this->assertEquals(3, $obj->count());
+    $obj->clear();
+    $this->assertEquals(0, $obj->count());
+  }
 }

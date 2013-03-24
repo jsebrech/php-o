@@ -115,6 +115,10 @@ class ArrayClass implements \IteratorAggregate, \ArrayAccess {
     return each($this->a);
   }
 
+  function clear() {
+    return $this->a = array();
+  }
+
   function raw() {
     return $this->a;
   }

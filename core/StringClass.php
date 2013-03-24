@@ -245,6 +245,10 @@ class StringClass implements \IteratorAggregate, \ArrayAccess {
     return new VariableType($isArray, $keyType, $type);
   }
 
+  function clear() {
+    return $this->s = "";
+  }
+
   function raw() {
     return $this->s;
   }

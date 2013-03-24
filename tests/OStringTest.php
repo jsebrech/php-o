@@ -174,4 +174,12 @@ class OStringTest extends PHPUnit_Framework_TestCase
     $this->assertTrue(isset($obj[3]));
     $this->assertFalse(isset($obj[4]));
   }
+
+  public function testClear() {
+    $s = "abc";
+    $obj = O\s($s);
+    $this->assertEquals(3, $obj->len());
+    $obj->clear();
+    $this->assertEquals(0, $obj->len());
+  }
 }

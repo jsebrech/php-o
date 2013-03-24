@@ -75,6 +75,10 @@ class ObjectClass implements \IteratorAggregate, \ArrayAccess
     }
   }
 
+  function clear() {
+    return $this->o = new \stdClass();
+  }
+
   function raw() {
     return $this->o;
   }
