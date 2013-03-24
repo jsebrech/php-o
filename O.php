@@ -2,7 +2,7 @@
 
 namespace O;
 
-$classPath = realpath(dirname(__FILE__)."/core");
+$classPath = realpath(dirname(__FILE__)."/src/O");
 
 // Session
 if (!class_exists("\\O\\Session")) include($classPath."/Session.php");

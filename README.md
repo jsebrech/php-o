@@ -307,5 +307,5 @@ Each of the different pieces can be included separately.
 
 For example, to use just the s() function:
 
-      include("path/to/o/core/StringClass.php");
+      include("path/to/O/StringClass.php");
       echo O\s("foo")->replace("foo", "bar");

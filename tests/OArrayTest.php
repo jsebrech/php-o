@@ -1,6 +1,6 @@
 <?php
 
-include_once realpath(dirname(__FILE__)."/../core/ArrayClass.php");
+include_once realpath(dirname(__FILE__)."/../src/O/ArrayClass.php");
 
 class OArrayTest extends PHPUnit_Framework_TestCase 
 {

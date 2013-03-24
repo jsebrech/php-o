@@ -1,6 +1,6 @@
 <?php
 
-include_once realpath(dirname(__FILE__)."/../core/ObjectClass.php");
+include_once realpath(dirname(__FILE__)."/../src/O/ObjectClass.php");
 
 class OObjectTest extends PHPUnit_Framework_TestCase 
 {
