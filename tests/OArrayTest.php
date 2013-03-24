@@ -129,4 +129,20 @@ class OArrayTest extends PHPUnit_Framework_TestCase
     $this->assertTrue(isset($obj[2]));
     $this->assertFalse(isset($obj[3]));
   }
+
+  public function testNavigation() {
+    $arr = array("a", "b", "c");
+    $obj = O\a($arr);
+    $this->assertEquals("c", $obj->end());
+    $this->assertEquals("a", $obj->begin());
+    $this->assertEquals("b", $obj->next());
+    $this->assertEquals("b", $obj->current());
+    $this->assertEquals("c", $obj->next());
+    $str = "";
+    $obj->begin();
+    while (list($key, $val) = $obj->each()) {
+      $str .= $val;
+    };
+    $this->assertEquals("abc", $str);
+  }
 }

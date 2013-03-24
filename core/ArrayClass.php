@@ -95,8 +95,24 @@ class ArrayClass implements \IteratorAggregate, \ArrayAccess {
     return array_sum($this->a);
   }
 
+  function begin() {
+    return reset($this->a);
+  }
+
+  function current() {
+    return current($this->a);
+  }
+
+  function next() {
+    return next($this->a);
+  }
+
   function end() {
     return end($this->a);
+  }
+
+  function each() {
+    return each($this->a);
   }
 
   function raw() {

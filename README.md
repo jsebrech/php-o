@@ -45,7 +45,7 @@ The `s()` function also implements JavaScript's string API:
 
 **`a()`** does the same thing for arrays.
 
-Implemented methods are: `->count()`, `->has()` (instead of `in_array()`), `->search()`, `->shift()`, `->unshift()`, `->key_exists()`, `->implode()`, `->keys()`, `->values()`, `->pop()`, `->push()`, `->slice()`, `->splice()`, `->merge()`, `->map()`, `-reduce()` and `->sum()`.
+Implemented methods are: `->count()`, `->has()` (instead of `in_array()`), `->search()`, `->shift()`, `->unshift()`, `->key_exists()`, `->implode()`, `->keys()`, `->values()`, `->pop()`, `->push()`, `->slice()`, `->splice()`, `->merge()`, `->map()`, `-reduce()`, `->sum()`, `->begin()` (instead of `reset()`), `->next()`, `->current()`, `->each()` and `->end()`.
 
 **Example of the `s()` function, string similarity algorithm:**
 
@@ -295,10 +295,10 @@ There's also a Session wrapper class to give it an OO taste:
       echo $session->getCSRFToken(); // == get_csrf_token();
       if (!$session->isCSRFProtected()) die(); // == is_csrf_protected();
 
-Templating
-----------
+Example app
+-----------
 
-O uses PTE (PHP as a Template Engine). See the [demo app](https://github.com/jsebrech/o-demo)'s usage of the "render" method on the o() object for more info.
+There is a [demo app](https://github.com/jsebrech/o-demo) that shows how O can be used in practice. This also shows off the ability to use HTML templating via the `o()->render()` method.
 
 Separate elements
 -----------------
