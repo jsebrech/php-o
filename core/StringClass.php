@@ -271,9 +271,9 @@ class VariableType {
  * @return \O\StringClass
  */
 function s($p) {
-  if ($p instanceof \O\StringClass) {
+  if ($p instanceof StringClass) {
     return $p;
   } else {
-    return new \O\StringClass($p);
+    return new StringClass($p);
   }
 }

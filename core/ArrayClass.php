@@ -153,9 +153,9 @@ class ArrayClass implements \IteratorAggregate, \ArrayAccess {
  * @return \O\ArrayClass
  */
 function a(&$p) {
-  if ($p instanceof \O\ArrayClass) {
+  if ($p instanceof ArrayClass) {
     return $p;
   } else {
-    return new \O\ArrayClass($p);
+    return new ArrayClass($p);
   }
 }

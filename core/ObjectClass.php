@@ -52,6 +52,7 @@ class ObjectClass implements \IteratorAggregate, \ArrayAccess
       if (class_exists($asType)) {
         if (is_object($this->o)) {
           $a = (array) $this->o;
+          /** @noinspection PhpUnnecessaryFullyQualifiedNameInspection */
           $refl = new \O\ReflectionClass($asType);
           $props = $refl->getProperties(
             ReflectionProperty::IS_STATIC|ReflectionProperty::IS_PUBLIC);
@@ -116,10 +117,10 @@ class ObjectClass implements \IteratorAggregate, \ArrayAccess
  * @return \O\ObjectClass
  */
 function o($p) {
-  if ($p instanceof \O\ObjectClass) {
+  if ($p instanceof ObjectClass) {
     return $p;
   } else {
-    return new \O\ObjectClass($p);
+    return new ObjectClass($p);
   }
 }
 

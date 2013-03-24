@@ -27,7 +27,7 @@ class ReflectionClass extends \ReflectionClass
    * @return \O\ReflectionMethod
    */
   public function getMethod($name) {
-    return new \O\ReflectionMethod($this->getName(), $name);
+    return new ReflectionMethod($this->getName(), $name);
   }
 
 
@@ -56,7 +56,7 @@ class ReflectionClass extends \ReflectionClass
    * @return \O\ReflectionProperty
    */
   public function getProperty($name) {
-    return new \O\ReflectionProperty($this->getName(), $name);
+    return new ReflectionProperty($this->getName(), $name);
   }
 
   /**
@@ -111,13 +111,13 @@ class ReflectionMethod extends \ReflectionMethod
   }
 
   public function getDeclaringClass() {
-    return new \O\ReflectionClass(parent::getDeclaringClass()->getName());
+    return new ReflectionClass(parent::getDeclaringClass()->getName());
   }
 
   public function getParameters() {
     $params = parent::getParameters();
     foreach ($params as $index => $param) {
-      $params[$index] = new \O\ReflectionParameter(
+      $params[$index] = new ReflectionParameter(
         array($this->getDeclaringClass()->getName(), $this->getName()),
         $param->getName());
     };
@@ -151,7 +151,7 @@ class ReflectionParameter extends \ReflectionParameter
     $f = parent::getDeclaringFunction();
     /** @var $f ReflectionMethod */
     if (is_a($f, "ReflectionMethod")) {
-      return new \O\ReflectionMethod($f->getDeclaringClass()->getName(), $f->getName());
+      return new ReflectionMethod($f->getDeclaringClass()->getName(), $f->getName());
     } else {
       return $f;
     }
