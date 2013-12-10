@@ -78,7 +78,8 @@ class ArrayClass implements \IteratorAggregate, \ArrayAccess {
   }
 
   function map($callback) {
-    $params = a(func_get_args())->slice(1);
+    $args = func_get_args();
+    $params = a($args)->slice(1);
     a($params)->unshift($callback, $this->a);
     return call_user_func_array("array_map", $params);
   }
