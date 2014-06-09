@@ -8,7 +8,6 @@ if (!extension_loaded("mbstring")) {
 } else if (headers_sent()) {
   throw new \Exception("headers already sent, load O.php at the top of the page");
 } else {
-  // TODO: add ability to handle different charsets
   ini_set("default_charset", "UTF-8");
   mb_internal_encoding("UTF-8");
 };
