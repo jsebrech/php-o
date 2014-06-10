@@ -19,5 +19,9 @@ class O {
     if (!class_exists("\\O\\ChainableClass")) include($classPath."/ChainableClass.php");
     // Validator and ReflectionClass
     if (!class_exists("\\O\\Validator")) include($classPath."/Validator.php");
+    // PDO
+    if (!class_exists("\\O\\PDO") && extension_loaded("pdo")) {
+      include($classPath."/PDO.php");
+    }
   }
 }

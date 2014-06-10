@@ -19,6 +19,7 @@ class AllTests
         $suite->addTestSuite("OChainableTest");
         $suite->addTestSuite("OReflectionTest");
         $suite->addTestSuite("OValidatorTest");
+        $suite->addTestSuite("OPDOTest");
  
         return $suite;
     }
