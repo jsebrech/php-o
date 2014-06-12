@@ -70,6 +70,88 @@ class PDO extends \PDO {
   }
 
   /**
+   * Insert a row into the DB
+   * @param string $table
+   * @param mixed $bind assoc array or object of key/value pairs
+   * @param string $returning param for lastInsertId
+   * @return string|int result of lastInsertId($returning)
+   */
+  public function insert($table, $bind = array(), $returning = NULL) {
+    $bind = $this->_convertBind($bind, "insert");
+    $values = array();
+    for ($i = 0; $i < count($bind); $i++) $values[] = "?";
+    $query =
+      "insert into ".$table.PHP_EOL.
+      "(".implode(", ", array_keys($bind)).")".PHP_EOL.
+      "values".PHP_EOL.
+      "(".implode(", ", $values).")";
+    $stmt = $this->prepare($query);
+    $stmt->bindParams(array_values($bind))->execute();
+    $result = $this->lastInsertId($returning);
+    $stmt->closeCursor();
+    return $result;
+  }
+
+  /**
+   * Update rows in $table
+   * @param string $table
+   * @param mixed $values assoc array or object of key/value pairs
+   * @param string $where sql where clause (excluding "where" keyword)
+   * @param mixed $whereBind assoc array or object of key/value pairs
+   * @return int affected number of rows
+   */
+  public function update($table, $values, $where = "", $whereBind = NULL) {
+    $query =
+      "update ".$table.PHP_EOL .
+      "set" . PHP_EOL;
+    $values = $this->_convertBind($values, "update");
+    $bind = array();
+    $set = array();
+    foreach ($values as $field => $value) {
+      $bind["pdo".count($set)] = $value;
+      $set[] = "  ".$field." = :pdo".count($set);
+    };
+    $query .= implode(",".PHP_EOL, $set).PHP_EOL;
+    if (!empty($where)) {
+      $query .= "where".PHP_EOL.$where;
+      if (!empty($whereBind)) {
+        $whereBind = $this->_convertBind($whereBind, "update");
+        $bind = array_merge($bind, $whereBind);
+      };
+    };
+
+    $stmt = $this->prepare($query);
+    $stmt->bindParams($bind)->execute();
+    $rowCount = $stmt->rowCount();
+    $stmt->closeCursor();
+    return $rowCount;
+  }
+
+  /**
+   * Deletes rows from a table
+   * @param string $table table to delete rows from
+   * @param string $where sql where clause (excluding "where" keyword)
+   * @param mixed $whereBind assoc array or object of key/value pairs
+   * @return int affected number of rows
+   */
+  public function delete($table, $where = "", $whereBind = NULL) {
+    $query = "delete from ".$table.PHP_EOL;
+    $bind = array();
+    if (!empty($where)) {
+      $query .= "where".PHP_EOL.$where;
+      if (!empty($whereBind)) {
+        $bind = $this->_convertBind($whereBind, "delete");
+      };
+    };
+
+    $stmt = $this->prepare($query);
+    $stmt->bindParams($bind)->execute();
+    $rowCount = $stmt->rowCount();
+    $stmt->closeCursor();
+    return $rowCount;
+  }
+
+  /**
    * @param string $statement
    * @param array $driver_options
    * @return PDOStatement
@@ -130,6 +212,20 @@ class PDO extends \PDO {
     return $result;
   }
 
+  /**
+   * @param mixed $bind
+   * @return array
+   * @throws \PDOException
+   */
+  private function _convertBind($bind) {
+    if (is_object($bind)) $bind = (array) $bind;
+    if (!is_array($bind)) {
+      throw new \PDOException(
+        "O\\PDO::insert expects argument to be array or object", "90001");
+    };
+    return $bind;
+  }
+
 }
 
 class PDOStatement extends \PDOStatement {
@@ -150,9 +246,23 @@ class PDOStatement extends \PDOStatement {
    */
   public function bindParams($bind) {
     $success = TRUE;
+    // support object with key value pairs (= named parameters)
+    if (is_object($bind)) {
+      $bind = (array) $bind;
+    };
+    // support list of parameters (= anonymous parameters)
+    if (!is_array($bind)) {
+      $bind = func_get_args();
+    };
+    // support array of key value pairs (= named parameters)
+    // and array of values (= anonymous parameters)
     if (is_array($bind)) {
       foreach ($bind as $key => $value) {
-        if ($key[0] !== ":") $key = ":".$key;
+        if ($this->_isAssocArray($bind)) { // named param
+          if ($key[0] !== ":") $key = ":".$key;
+        } else { // 1-indexed position for anon param
+          $key++;
+        };
         $success = $success && $this->bindValue($key, $value);
       };
     };
@@ -240,4 +350,12 @@ class PDOStatement extends \PDOStatement {
     return $this->fluent ? $this : $result;
   }
 
+  /**
+   * Returns true if the array is associative (key/value pairs)
+   * @param array $arr
+   * @return bool
+   */
+  private function _isAssocArray($arr) {
+    return array_keys($arr) !== range(0, count($arr) - 1);
+  }
 }

@@ -88,9 +88,68 @@ class OPDOTest extends PHPUnit_Framework_TestCase
   }
 
   public function testBindParams() {
-    $stmt = $this->db->prepare("select description from test where id = :id");
-    $stmt->bindParams(array(":id" => 3))->execute();
-    $value = $stmt->fetchColumn(0);
+    // test named params
+    $stmt = $this->db->prepare(
+      "select description from test where id = :id");
+    $value = $stmt->bindParams(array(":id" => 3))->execute()->fetchColumn(0);
     $this->assertEquals("row with id 3", $value);
+
+    // test named params as object
+    $param = new StdClass();
+    $param->id = 4;
+    $value = $stmt->bindParams($param)->execute()->fetchColumn(0);
+    $this->assertEquals("row with id 4", $value);
+
+    // test anon params as array
+    $value = $this->db->prepare(
+      "select count(*) from test where id <> ? and id <> ?"
+    )->bindParams(array(2, 3))->execute()->fetchColumn(0);
+    $this->assertEquals(8, $value);
+
+    // test anon params as list
+    $value = $this->db->prepare(
+      "select count(*) from test where id <> ? and id <> ? and id <> ?"
+    )->bindParams(2, 3, 4)->execute()->fetchColumn(0);
+    $this->assertEquals(7, $value);
+  }
+
+  function testInsert() {
+    $returned = $this->db->insert("test", array(
+      "description" => "foo"
+    ));
+    $this->assertEquals(11, $returned);
+    $count = $this->db->fetchOne(
+      "select count(*) from test where id = ?", array(11));
+    $this->assertEquals(1, $count);
+  }
+
+  function testUpdate() {
+    $count = $this->db->update(
+      "test",
+      array("description" => "foo"),
+      "id >= :id1 and id <= :id2",
+      array("id1" => 2, "id2" => 6)
+    );
+    $this->assertEquals(5, $count);
+    $count = $this->db->fetchOne("select count(*) from test where description = 'foo'");
+    $this->assertEquals(5, $count);
+  }
+
+  function testDelete() {
+    $count = $this->db->delete(
+      "test",
+      "id >= :id1 and id <= :id2",
+      array("id1" => 2, "id2" => 6)
+    );
+    $this->assertEquals(5, $count);
+    $count = $this->db->fetchOne("select count(*) from test");
+    $this->assertEquals(5, $count);
+  }
+
+  /**
+   * @expectedException PDOException
+   */
+  function testInsertInvalid() {
+    $this->db->insert("test", "invalid");
   }
 }

@@ -6,6 +6,7 @@ include_once "OObjectTest.php";
 include_once "OChainableTest.php";
 include_once "OReflectionTest.php";
 include_once "OValidatorTest.php";
+include_once "OPDOTest.php";
 
 class AllTests
 {
