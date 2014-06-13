@@ -152,4 +152,39 @@ class OPDOTest extends PHPUnit_Framework_TestCase
   function testInsertInvalid() {
     $this->db->insert("test", "invalid");
   }
+
+  function testProfiler() {
+    $profiler = new O\PDOProfiler();
+    $this->db->setProfiler($profiler);
+
+    $query = "update test set description = 'test'";
+    $this->db->exec($query);
+    $profiles = $profiler->getProfiles();
+    $this->assertInternalType("array", $profiles);
+    $this->assertEquals(1, count($profiles));
+    $this->assertInternalType("float", $profiles[0][0]);
+    $this->assertInternalType("float", $profiles[0][1]);
+    $this->assertEquals($query, $profiles[0][2]);
+    $this->assertNull($profiles[0][3]);
+
+    $profiler->clear();
+    $this->assertEquals(0, count($profiler->getProfiles()));
+
+    $query = "select count(*) from test";
+    $this->db->query($query);
+    $profiles = $profiler->getProfiles();
+    $this->assertEquals(1, count($profiles));
+    $this->assertEquals($query, $profiles[0][2]);
+
+    $profiler->clear();
+    $query = "select count(*) from test where id = :id";
+    $stmt = $this->db->prepare($query);
+    $stmt->bindValue(":id", 6);
+    $stmt->execute();
+    $profiles = $profiler->getProfiles();
+    $this->assertEquals(1, count($profiles));
+    $this->assertEquals($query, $profiles[0][2]);
+    $this->assertInternalType("array", $profiles[0][3]);
+    $this->assertEquals(6, $profiles[0][3][":id"]);
+  }
 }

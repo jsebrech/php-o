@@ -9,13 +9,39 @@ class PDO extends \PDO {
    */
   private $fluent = TRUE;
 
+  /**
+   * @var PDOProfiler The current query profiler
+   */
+  private $profiler = NULL;
+
   public function __construct($dsn, $username="", $password="", $options=array()) {
     parent::__construct($dsn, $username, $password, $options);
     if (isset($options["fluent"])) $this->fluent = !!$options["fluent"];
     // not compatible with persistent PDO connections
-    $this->setAttribute(PDO::ATTR_STATEMENT_CLASS, array('O\\PDOStatement', array($this->fluent)));
+    $this->setAttribute(PDO::ATTR_STATEMENT_CLASS, array('O\\PDOStatement', array($this)));
     // don't sweep errors under the rug
     $this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+  }
+
+  /**
+   * @return bool
+   */
+  public function isFluent() {
+    return $this->fluent;
+  }
+
+  /**
+   * @param PDOProfiler $profiler
+   */
+  public function setProfiler($profiler) {
+    $this->profiler = $profiler;
+  }
+
+  /**
+   * @return PDOProfiler
+   */
+  public function getProfiler() {
+    return $this->profiler;
   }
 
   /**
@@ -153,6 +179,16 @@ class PDO extends \PDO {
 
   /**
    * @param string $statement
+   * @return int
+   */
+  public function exec($statement) {
+    $id = $this->_beforeQuery($statement);
+    $result = parent::exec($statement);
+    $this->_afterQuery($id);
+    return $result;
+  }
+  /**
+   * @param string $statement
    * @param array $driver_options
    * @return PDOStatement
    */
@@ -165,7 +201,10 @@ class PDO extends \PDO {
    * @return PDOStatement
    */
   public function query($statement) {
-    return parent::query($statement);
+    $id = $this->_beforeQuery($statement);
+    $result = parent::query($statement);
+    $this->_afterQuery($id);
+    return $result;
   }
 
   /**
@@ -226,18 +265,44 @@ class PDO extends \PDO {
     return $bind;
   }
 
+  /**
+   * @param $query
+   * @param $params
+   * @return int|null
+   */
+  private function _beforeQuery($query, $params = NULL) {
+    if ($this->profiler) {
+      return $this->profiler->queryStart($query, $params);
+    } else {
+      return NULL;
+    }
+  }
+
+  /**
+   * @param int $id
+   */
+  private function _afterQuery($id) {
+    if ($this->profiler) {
+      $this->profiler->queryEnd($id);
+    }
+  }
+
 }
 
 class PDOStatement extends \PDOStatement {
 
-  private $fluent = FALSE;
+  /** @var PDO */
+  private $pdo = NULL;
+
+  /** @var array Parameters that are bound */
+  private $params = array();
 
   /**
-   * @param bool $fluent
+   * @param PDO $pdo
    * Return $this from API's that would return bool
    */
-  protected function __construct($fluent = FALSE) {
-    $this->fluent = $fluent;
+  protected function __construct($pdo) {
+    $this->pdo = $pdo;
   }
 
   /**
@@ -266,7 +331,7 @@ class PDOStatement extends \PDOStatement {
         $success = $success && $this->bindValue($key, $value);
       };
     };
-    return $this->fluent ? $this : $success;
+    return $this->pdo->isFluent() ? $this : $success;
   }
 
   /**
@@ -279,7 +344,7 @@ class PDOStatement extends \PDOStatement {
    */
   public function bindColumn($column, &$param, $type = NULL, $maxlen = NULL, $driverdata = NULL) {
     $result = parent::bindColumn($column, $param, $type, $maxlen, $driverdata);
-    return $this->fluent ? $this : $result;
+    return $this->pdo->isFluent() ? $this : $result;
   }
 
   /**
@@ -291,8 +356,9 @@ class PDOStatement extends \PDOStatement {
    * @return bool|PDOStatement
    */
   public function bindParam($parameter, &$variable, $data_type = PDO::PARAM_STR, $length = NULL, $driver_options = NULL) {
+    $this->params[$parameter] = $variable;
     $result = parent::bindParam($parameter, $variable, $data_type, $length, $driver_options);
-    return $this->fluent ? $this : $result;
+    return $this->pdo->isFluent() ? $this : $result;
   }
 
   /**
@@ -302,8 +368,9 @@ class PDOStatement extends \PDOStatement {
    * @return bool|PDOStatement
    */
   public function bindValue($parameter, $value, $data_type = PDO::PARAM_STR) {
+    $this->params[$parameter] = $value;
     $result = parent::bindValue($parameter, $value, $data_type);
-    return $this->fluent ? $this : $result;
+    return $this->pdo->isFluent() ? $this : $result;
   }
 
   /**
@@ -311,7 +378,7 @@ class PDOStatement extends \PDOStatement {
    */
   public function closeCursor() {
     $result = parent::closeCursor();
-    return $this->fluent ? $this : $result;
+    return $this->pdo->isFluent() ? $this : $result;
   }
 
   /**
@@ -319,8 +386,13 @@ class PDOStatement extends \PDOStatement {
    * @return bool|PDOStatement
    */
   public function execute($input_parameters = NULL) {
+    if ($this->pdo->getProfiler()) {
+      $id = $this->pdo->getProfiler()->queryStart(
+        $this->queryString, $input_parameters ?: $this->params);
+    }
     $result = parent::execute($input_parameters);
-    return $this->fluent ? $this : $result;
+    if (isset($id)) $this->pdo->getProfiler()->queryEnd($id);
+    return $this->pdo->isFluent() ? $this : $result;
   }
 
   /**
@@ -328,7 +400,7 @@ class PDOStatement extends \PDOStatement {
    */
   public function nextRowSet() {
     $result = parent::nextRowSet();
-    return $this->fluent ? $this : $result;
+    return $this->pdo->isFluent() ? $this : $result;
   }
 
   /**
@@ -338,7 +410,7 @@ class PDOStatement extends \PDOStatement {
    */
   public function setAttribute($attribute, $value) {
     $result = parent::setAttribute($attribute, $value);
-    return $this->fluent ? $this : $result;
+    return $this->pdo->isFluent() ? $this : $result;
   }
 
   /**
@@ -347,7 +419,7 @@ class PDOStatement extends \PDOStatement {
    */
   public function setFetchMode($mode) {
     $result = parent::setFetchMode($mode);
-    return $this->fluent ? $this : $result;
+    return $this->pdo->isFluent() ? $this : $result;
   }
 
   /**
@@ -357,5 +429,47 @@ class PDOStatement extends \PDOStatement {
    */
   private function _isAssocArray($arr) {
     return array_keys($arr) !== range(0, count($arr) - 1);
+  }
+}
+
+class PDOProfiler {
+  /**
+   * @var array [[duration, startTime, queryString, queryParams]]
+   */
+  protected $profiles = array();
+
+  public function clear() {
+    $this->profiles = array();
+  }
+
+  /**
+   * Start profiling a query
+   * @param string $text
+   * @param mixed $bind
+   * @return int The id of the query profile
+   */
+  public function queryStart($text, $bind) {
+    $this->profiles[] = array(NULL, microtime(true), $text, $bind);
+    return count($this->profiles) - 1;
+  }
+
+  /**
+   * Finish a query being profiled
+   * @param int $profileID
+   */
+  public function queryEnd($profileID) {
+    if ($profileID === NULL) return;
+    if (isset($this->profiles[$profileID])) {
+      $arr =& $this->profiles[$profileID];
+      $arr[0] = microtime(true) - $arr[1];
+    }
+  }
+
+  /**
+   * Return the query profile data
+   * @return array
+   */
+  public function getProfiles() {
+    return $this->profiles;
   }
 }
