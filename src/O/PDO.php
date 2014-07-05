@@ -312,7 +312,7 @@ class PDOStatement extends \PDOStatement {
   }
 
   /**
-   * @param array $bind
+   * @param array|object $bind
    * @return PDOStatement|bool
    */
   public function bindParams($bind) {
