@@ -113,6 +113,15 @@ class OPDOTest extends PHPUnit_Framework_TestCase
     $this->assertEquals(7, $value);
   }
 
+  function testBindParamDate() {
+    $dateValue = "2011-12-19 22:15:00";
+    $this->db->prepare(
+      "insert into test (description) values (:datestr)"
+    )->bindParam("datestr", $dateValue)->execute();
+    $sqlValue = $this->db->fetchOne("select description from test where id = 11");
+    $this->assertEquals($dateValue, $sqlValue);
+  }
+
   function testInsert() {
     $returned = $this->db->insert("test", array(
       "description" => "foo"
@@ -121,6 +130,15 @@ class OPDOTest extends PHPUnit_Framework_TestCase
     $count = $this->db->fetchOne(
       "select count(*) from test where id = ?", array(11));
     $this->assertEquals(1, $count);
+  }
+
+  function testInsertDate() {
+    $dateValue = "2011-12-19 22:15:00";
+    $this->db->insert("test", array(
+      "description" => new DateTime($dateValue)
+    ));
+    $sqlValue = $this->db->fetchOne("select description from test where id = 11");
+    $this->assertEquals($dateValue, $sqlValue);
   }
 
   function testUpdate() {

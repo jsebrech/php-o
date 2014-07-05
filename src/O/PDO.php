@@ -14,6 +14,11 @@ class PDO extends \PDO {
    */
   private $profiler = NULL;
 
+  /**
+   * @var string The string format to convert DateTime values to when binding params
+   */
+  public static $dateFormat = "Y-m-d H:i:s";
+
   public function __construct($dsn, $username="", $password="", $options=array()) {
     parent::__construct($dsn, $username, $password, $options);
     if (isset($options["fluent"])) $this->fluent = !!$options["fluent"];
@@ -21,6 +26,7 @@ class PDO extends \PDO {
     $this->setAttribute(PDO::ATTR_STATEMENT_CLASS, array('O\\PDOStatement', array($this)));
     // don't sweep errors under the rug
     $this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    // TODO: unicode support
   }
 
   /**
@@ -322,13 +328,13 @@ class PDOStatement extends \PDOStatement {
     // support array of key value pairs (= named parameters)
     // and array of values (= anonymous parameters)
     if (is_array($bind)) {
-      foreach ($bind as $key => $value) {
+      foreach ($bind as $key => &$value) {
         if ($this->_isAssocArray($bind)) { // named param
           if ($key[0] !== ":") $key = ":".$key;
         } else { // 1-indexed position for anon param
           $key++;
         };
-        $success = $success && $this->bindValue($key, $value);
+        $success = $success && $this->bindParam($key, $value);
       };
     };
     return $this->pdo->isFluent() ? $this : $success;
@@ -356,8 +362,13 @@ class PDOStatement extends \PDOStatement {
    * @return bool|PDOStatement
    */
   public function bindParam($parameter, &$variable, $data_type = PDO::PARAM_STR, $length = NULL, $driver_options = NULL) {
-    $this->params[$parameter] = $variable;
-    $result = parent::bindParam($parameter, $variable, $data_type, $length, $driver_options);
+    if ($variable instanceof \DateTime) {
+      $value = $variable->format(PDO::$dateFormat);
+    } else {
+      $value =& $variable;
+    };
+    $this->params[$parameter] = $value;
+    $result = parent::bindParam($parameter, $value, $data_type, $length, $driver_options);
     return $this->pdo->isFluent() ? $this : $result;
   }
 
@@ -368,6 +379,9 @@ class PDOStatement extends \PDOStatement {
    * @return bool|PDOStatement
    */
   public function bindValue($parameter, $value, $data_type = PDO::PARAM_STR) {
+    if ($value instanceof \DateTime) {
+      $value = $value->format(PDO::$dateFormat);
+    };
     $this->params[$parameter] = $value;
     $result = parent::bindValue($parameter, $value, $data_type);
     return $this->pdo->isFluent() ? $this : $result;
