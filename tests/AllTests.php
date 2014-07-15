@@ -7,6 +7,7 @@ include_once "OChainableTest.php";
 include_once "OReflectionTest.php";
 include_once "OValidatorTest.php";
 include_once "OPDOTest.php";
+include_once "OPDOMySQLTest.php";
 
 class AllTests
 {
@@ -21,6 +22,7 @@ class AllTests
         $suite->addTestSuite("OReflectionTest");
         $suite->addTestSuite("OValidatorTest");
         $suite->addTestSuite("OPDOTest");
+        $suite->addTestSuite("OPDOMySQLTest");
  
         return $suite;
     }

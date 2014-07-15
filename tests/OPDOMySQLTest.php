@@ -2,25 +2,41 @@
 
 include_once dirname(__FILE__)."/../O.php";
 
-class OPDOTest extends PHPUnit_Framework_TestCase
+class OPDOMySQLTest extends PHPUnit_Framework_TestCase
 {
   /** @var \O\PDO */
-  static protected $db;
+  static protected $db = NULL;
+  /** @var string */
+  static protected $dbError = NULL;
+
+  // TODO: test connection is set up for unicode
 
   protected function setUp()
   {
-    if (!self::$db) {
-      if (!extension_loaded('pdo_sqlite')) {
-        $this->markTestSkipped(
-          'The PDO sqlite extension is not available.'
-        );
-      }
-      self::$db = new O\PDO("sqlite::memory:");
+    // mysql connection parameters
+    $dsn = 'mysql:host=localhost;dbname=test';
+    $username = 'root';
+    $password = '';
+
+    if (!extension_loaded('pdo_mysql')) {
+      $this->markTestSkipped(
+        'The PDO mysql extension is not available.'
+      );
     }
+    if (self::$dbError === NULL) {
+      try {
+        self::$db = new O\PDO($dsn, $username, $password);
+      } catch (Exception $e) {
+        self::$dbError = $e->getMessage();
+      };
+    };
+    if (self::$dbError !== NULL) {
+      $this->markTestSkipped("Unable to connect to mysql: ".self::$dbError);
+    };
     self::$db->exec("DROP TABLE IF EXISTS test");
     self::$db->exec(
       "CREATE TABLE IF NOT EXISTS test (
-         id INTEGER PRIMARY KEY,
+         id INTEGER PRIMARY KEY AUTO_INCREMENT,
          description TEXT
        )");
     $stmt = self::$db->prepare(
@@ -207,22 +223,5 @@ class OPDOTest extends PHPUnit_Framework_TestCase
     $this->assertEquals($query, $profiles[0][2]);
     $this->assertInternalType("array", $profiles[0][3]);
     $this->assertEquals(6, $profiles[0][3][":id"]);
-  }
-
-  public function testBindOStringClass() {
-    $id = O\s("6");
-    $description = self::$db->fetchOne(
-      "select description from test where id = :id",
-      array("id" => $id));
-    $this->assertEquals("row with id 6", $description);
-  }
-
-  public function testBindOArrayClass() {
-    $ids = O\ca(array("id1" => 5, "id2" => 6));
-    $count = self::$db->fetchOne(
-      "select count(*) from test where id <> :id1 and id <> :id2",
-      $ids
-    );
-    $this->assertEquals(8, $count);
   }
 }

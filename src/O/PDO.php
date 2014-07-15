@@ -292,7 +292,6 @@ class PDO extends \PDO {
       $this->profiler->queryEnd($id);
     }
   }
-
 }
 
 class PDOStatement extends \PDOStatement {
@@ -319,7 +318,9 @@ class PDOStatement extends \PDOStatement {
     $success = TRUE;
     // support object with key value pairs (= named parameters)
     if (is_object($bind)) {
-      $bind = (array) $bind;
+      // ChainableClass, StringClass, ArrayClass
+      if (method_exists($bind, "raw")) $bind = $bind->raw();
+      if (is_object($bind)) $bind = (array) $bind;
     };
     // support list of parameters (= anonymous parameters)
     if (!is_array($bind)) {
@@ -362,6 +363,10 @@ class PDOStatement extends \PDOStatement {
    * @return bool|PDOStatement
    */
   public function bindParam($parameter, &$variable, $data_type = PDO::PARAM_STR, $length = NULL, $driver_options = NULL) {
+    // ArrayClass, StringClass, ChainableClass
+    if (is_object($variable) && method_exists($variable, "raw")) {
+      $variable = $variable->raw();
+    };
     if ($variable instanceof \DateTime) {
       $value = $variable->format(PDO::$dateFormat);
     } else {
