@@ -20,13 +20,25 @@ class PDO extends \PDO {
   public static $dateFormat = "Y-m-d H:i:s";
 
   public function __construct($dsn, $username="", $password="", $options=array()) {
+    $dsn = self::decorateDSN($dsn);
     parent::__construct($dsn, $username, $password, $options);
     if (isset($options["fluent"])) $this->fluent = !!$options["fluent"];
     // not compatible with persistent PDO connections
     $this->setAttribute(PDO::ATTR_STATEMENT_CLASS, array('O\\PDOStatement', array($this)));
     // don't sweep errors under the rug
     $this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    // TODO: unicode support
+  }
+
+  protected function decorateDSN($dsn) {
+    // default to utf8 if no charset if given
+    if (strpos($dsn, "charset=") === FALSE) {
+      if ((strpos($dsn, "mysql:") === 0) || (strpos($dsn, "pgsql:") === 0)) {
+        $dsn = rtrim($dsn, "; ").";charset=utf8";
+      } else if (strpos($dsn, "oci:") === 0) {
+        $dsn = rtrim($dsn, "; ").";charset=AL32UTF8";
+      };
+    };
+    return $dsn;
   }
 
   /**
