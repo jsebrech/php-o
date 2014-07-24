@@ -33,6 +33,7 @@ class PDO extends \PDO {
     // default to utf8 if no charset if given
     if (strpos($dsn, "charset=") === FALSE) {
       if ((strpos($dsn, "mysql:") === 0) || (strpos($dsn, "pgsql:") === 0)) {
+        // requires PHP >= 5.3.6
         $dsn = rtrim($dsn, "; ").";charset=utf8";
       } else if (strpos($dsn, "oci:") === 0) {
         $dsn = rtrim($dsn, "; ").";charset=AL32UTF8";
