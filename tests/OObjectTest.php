@@ -69,6 +69,16 @@ class OObjectTest extends PHPUnit_Framework_TestCase
     $obj->clear();
     $this->assertFalse(isset($obj->var1));
   }
+
+  public function testValidate() {
+    $obj = O\o(new ObjectTest3());
+    $errors = $obj->validate();
+    $this->assertInternalType("array", $errors);
+    $this->assertEquals(1, count($errors));
+    $obj->var1 = 5;
+    $errors = $obj->validate();
+    $this->assertEquals(0, count($errors));
+  }
   
 }
 
@@ -106,4 +116,13 @@ class ObjectTest2
   
   /** @var int */
   public static $var2 = 0;
+}
+
+class ObjectTest3
+{
+  /**
+   * @var int
+   * @Min(1)
+   */
+  public $var1 = 0;
 }
