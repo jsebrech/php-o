@@ -105,7 +105,7 @@ function c($o) {
 
 /**
  * @param string $o
- * @return \O\ChainableClass
+ * @return \O\ChainableClass|\O\StringClass
  */
 function cs($o) {
   return c(s($o));
@@ -113,7 +113,7 @@ function cs($o) {
 
 /**
  * @param array $o
- * @return \O\ChainableClass
+ * @return \O\ChainableClass|\O\ArrayClass
  */
 function ca($o) {
   return c(a($o));
@@ -121,7 +121,7 @@ function ca($o) {
 
 /**
  * @param mixed $o
- * @return \O\ChainableClass
+ * @return \O\ChainableClass|\O\ObjectClass
  */
 function co($o) {
   return c(o($o));

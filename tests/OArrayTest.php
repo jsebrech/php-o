@@ -1,6 +1,6 @@
 <?php
 
-include_once realpath(dirname(__FILE__)."/../src/O/ArrayClass.php");
+include_once realpath(__DIR__)."/../src/O/ArrayClass.php";
 
 class OArrayTest extends PHPUnit_Framework_TestCase 
 {
@@ -140,6 +140,7 @@ class OArrayTest extends PHPUnit_Framework_TestCase
     $this->assertEquals("c", $obj->next());
     $str = "";
     $obj->begin();
+    /** @noinspection PhpUnusedLocalVariableInspection */
     while (list($key, $val) = $obj->each()) {
       $str .= $val;
     };

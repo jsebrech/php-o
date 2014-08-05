@@ -90,7 +90,7 @@ class ObjectClass implements \IteratorAggregate, \ArrayAccess
   }
 
   function validate(&$errors = NULL) {
-    if (!class_exists("\\O\\Validator")) include(realpath(__DIR__)."/Validator.php");
+    if (!class_exists("\\O\\Validator")) include("Validator.php");
     $errors = Validator::validate($this->raw());
     return empty($errors);
   }
