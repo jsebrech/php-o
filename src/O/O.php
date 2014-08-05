@@ -6,7 +6,7 @@ class O {
    * Force O functions to get loaded
    */
   static function init() {
-    $classPath = realpath(dirname(__FILE__));
+    $classPath = realpath(__DIR__);
     // Session
     if (!class_exists("\\O\\Session")) include($classPath."/Session.php");
     // s()

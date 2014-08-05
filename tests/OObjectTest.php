@@ -72,12 +72,11 @@ class OObjectTest extends PHPUnit_Framework_TestCase
 
   public function testValidate() {
     $obj = O\o(new ObjectTest3());
-    $errors = $obj->validate();
+    $this->assertFalse($obj->validate($errors));
     $this->assertInternalType("array", $errors);
     $this->assertEquals(1, count($errors));
     $obj->var1 = 5;
-    $errors = $obj->validate();
-    $this->assertEquals(0, count($errors));
+    $this->assertTrue($obj->validate());
   }
   
 }
