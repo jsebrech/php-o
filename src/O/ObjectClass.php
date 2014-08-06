@@ -89,6 +89,11 @@ class ObjectClass implements \IteratorAggregate, \ArrayAccess
     include $template;
   }
 
+  /**
+   * Validate an object using Validator::validate
+   * @param Array $errors Variable to return any found errors in, optional reference.
+   * @return bool Whether the object is valid according to its annootations
+   */
   function validate(&$errors = NULL) {
     if (!class_exists("\\O\\Validator")) include("Validator.php");
     $errors = Validator::validate($this->raw());
@@ -97,6 +102,7 @@ class ObjectClass implements \IteratorAggregate, \ArrayAccess
 
 // IteratorAggregate
 
+  /** @return \ArrayIterator */
   function getIterator() {
     $o = new \ArrayObject($this->o);
     return $o->getIterator();

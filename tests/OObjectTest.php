@@ -1,6 +1,6 @@
 <?php
 
-include_once realpath(dirname(__FILE__)."/../src/O/ObjectClass.php");
+include_once realpath(__DIR__)."/../src/O/ObjectClass.php";
 
 class OObjectTest extends PHPUnit_Framework_TestCase 
 {
@@ -15,6 +15,7 @@ class OObjectTest extends PHPUnit_Framework_TestCase
     unset($o->foo);
     $this->assertFalse(isset($o->foo));
     $this->assertTrue(isset($o->fn));
+    /** @noinspection PhpUndefinedMethodInspection */
     $this->assertEquals("test", $o->fn("te","st"));
   }
   

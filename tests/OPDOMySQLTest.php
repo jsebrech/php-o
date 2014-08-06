@@ -1,6 +1,6 @@
 <?php
 
-include_once dirname(__FILE__)."/../O.php";
+include_once realpath(__DIR__)."/../O.php";
 
 class OPDOMySQLTest extends PHPUnit_Framework_TestCase
 {
@@ -8,8 +8,6 @@ class OPDOMySQLTest extends PHPUnit_Framework_TestCase
   static protected $db = NULL;
   /** @var string */
   static protected $dbError = NULL;
-
-  // TODO: test connection is set up for unicode
 
   protected function setUp()
   {
@@ -223,5 +221,10 @@ class OPDOMySQLTest extends PHPUnit_Framework_TestCase
     $this->assertEquals($query, $profiles[0][2]);
     $this->assertInternalType("array", $profiles[0][3]);
     $this->assertEquals(6, $profiles[0][3][":id"]);
+  }
+
+  function testUtf8() {
+    // TODO: test utf8 with string
+    // Iñtërnâtiônàlizætiøn and €
   }
 }

@@ -1,6 +1,6 @@
 <?php
 
-include_once dirname(__FILE__)."/../O.php";
+include_once realpath(__DIR__)."/../O.php";
 
 class OReflectionTest extends PHPUnit_Framework_TestCase 
 {

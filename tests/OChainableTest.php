@@ -1,6 +1,6 @@
 <?php
 
-include_once dirname(__FILE__)."/../O.php";
+include_once realpath(__DIR__)."/../O.php";
 
 class OChainableTest extends PHPUnit_Framework_TestCase 
 {
@@ -28,6 +28,7 @@ class OChainableTest extends PHPUnit_Framework_TestCase
   public function testChainBuiltins()
   {
     $a = new ArrayObject(array("foo", "bar", "baz"));
+    /** @noinspection PhpUndefinedMethodInspection */
     $r = O\c($a)->getArrayCopy()->implode()->raw();
     $this->assertEquals("foobarbaz", $r);
   }
