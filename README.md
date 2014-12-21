@@ -26,6 +26,7 @@ It is also possible to load each of the pieces described below separately:
     * [Input Validation](#input-validation)
     * [Chainables](#chainables)
     * [Session Handling](#session-handling)
+    * [PDO](#pdo)
     * [Example Application](#example-application)
 
 ## Strings and Arrays
@@ -302,6 +303,100 @@ There's also a Session wrapper class to give it an OO taste:
       echo $session->foo; // == $_SESSION["foo"], isset implicitly performed
       echo $session->getCSRFToken(); // == get_csrf_token();
       if (!$session->isCSRFProtected()) die(); // == is_csrf_protected();
+
+## PDO
+
+PDO is wrapped to improve its API.
+
+The fetch methods from the PDO statement are added directly to the PDO object:
+
+    $db = new O\PDO("sqlite::memory:");
+    
+    $rows = $db->fetchAll(
+        "select * from test where id <> :id",
+        array("id" => 2) // bound parameter by name
+    );
+    
+    $row = $db->fetchRow(
+        "select * from test where id = ?",
+        array(3) // bound parameter by position
+    );
+
+    $col = $db->fetchColumn(
+        "select description, id from test where id <> :id",
+        array("id" => 1), // NULL to skip
+        1 // return second column
+    );
+
+It also adds one new fetch method to fetch a single value:
+
+    $value = $db->fetchOne(
+        "select description from test where id = :id",
+        array("id" => 2)
+    );
+
+Parameter binding supports binding more than one parameter.
+
+Anonymous binding:
+
+    $value = $db->prepare(
+        "select count(*) from test where id <> ? and id <> ?"
+    )->bindParams(array(2, 3))->execute()->fetchColumn(0);
+
+Named binding (via object or associative array):
+
+    $params = new StdClass();
+    $params->id = 4;
+    $params->desc = "foo";
+    $stmt = $db->prepare(
+        "select description from test where id = :id and description <> :desc");
+    $value = $stmt->bindParams($params)->execute()->fetchColumn(0);
+
+Notice that the API is fluent (allows chained calls).
+
+You may disable this through the *fluent* option:
+
+    $db = new O\PDO("sqlite::memory:", "", "", array("fluent" => false));
+
+There are also shorthand methods for basic CRUD operations:
+
+    $insertId = $db->insert(
+        "test", // table
+        array("description" => "foo")
+    );
+    // uses PDO::lastInsertId to return the id
+    
+    $count = $db->update(
+        "test",
+        array("description" => "foo"), // set to this
+        "id >= :id1 and id <= :id2", // where
+        array("id1" => 2, "id2" => 6) // where parameters
+    );
+
+    $count = $db->delete(
+        "test",
+        "id >= :id1 and id <= :id2",
+        array("id1" => 2, "id2" => 6)
+    );
+
+You can attach a profiler to get per-query profiles:
+
+    $profiler = new O\PDOProfiler();
+    $db->setProfiler($profiler);
+    
+    $db->query("select count(*) from test where id = :id", array("id" => 6));
+    $profiles = $profiler->getProfiles();
+    
+    print_r($profiles);
+    -->
+    Array(
+        [0] => Array(
+                [0] => 7.7009201049805E-5 = elapsed time
+                [1] => 1419201522.886 = start time
+                [2] => select count(*) from test where id = :id
+                [3] => Array([:id] => 6)
+        )
+    )
 
 ## Example Application
 

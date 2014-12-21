@@ -206,6 +206,7 @@ class PDO extends \PDO {
     $this->_afterQuery($id);
     return $result;
   }
+
   /**
    * @param string $statement
    * @param array $driver_options
