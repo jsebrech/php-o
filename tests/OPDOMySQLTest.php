@@ -224,7 +224,14 @@ class OPDOMySQLTest extends PHPUnit_Framework_TestCase
   }
 
   function testUtf8() {
-    // TODO: test utf8 with string
-    // Iñtërnâtiônàlizætiøn and €
+    $i18n = "Iñtërnâtiônàlizætiøn";
+    self::$db->update(
+      "test",
+      array("description" => $i18n),
+      "id = :id", array("id" => 1));
+    $result = self::$db->fetchOne(
+      "select description from test where id = :id",
+      array("id" => 1));
+    $this->assertEquals($i18n, $result);
   }
 }

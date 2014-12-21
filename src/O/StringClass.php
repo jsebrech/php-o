@@ -206,8 +206,14 @@ class StringClass implements \IteratorAggregate, \ArrayAccess {
     if (!is_array($matches)) $matches = array();
     // convert offset from characters to bytes
     if ($offset) $offset = strlen($this->substr(0, $offset));
-    return preg_match($pattern, $this->s, $matches, $flags, $offset);
-    // TODO: convert returned positions from bytes to characters
+    $result = preg_match($pattern, $this->s, $matches, $flags, $offset);
+    if ($flags & PREG_OFFSET_CAPTURE) {
+      foreach ($matches as &$match) {
+        // convert offset in bytes into offset in code points
+        $match[1] = mb_strlen(substr($this->s, 0, $match[1]));
+      }
+    };
+    return $result;
   }
 
   /**
@@ -222,8 +228,16 @@ class StringClass implements \IteratorAggregate, \ArrayAccess {
     if (!is_array($matches)) $matches = array();
     // convert offset from characters to bytes
     if ($offset) $offset = strlen($this->substr(0, $offset));
-    return preg_match_all($pattern, $this->s, $matches, $flags, $offset);
-    // TODO: convert returned positions from bytes to characters
+    $result = preg_match_all($pattern, $this->s, $matches, $flags, $offset);
+    if ($flags & PREG_OFFSET_CAPTURE) {
+      foreach ($matches as &$group) {
+        foreach ($group as &$match) {
+          // convert offset in bytes into offset in code points
+          $match[1] = mb_strlen(substr($this->s, 0, $match[1]));
+        };
+      };
+    };
+    return $result;
   }
 
   /**
@@ -245,7 +259,9 @@ class StringClass implements \IteratorAggregate, \ArrayAccess {
    * @return bool
    */
   function in_array($haystack) {
-    // TODO: make sure this works with ArrayClass
+    if (!is_array($haystack) && ($haystack instanceof ArrayClass)) {
+      $haystack = $haystack->raw();
+    }
     return in_array($this->s, $haystack);
   }
 

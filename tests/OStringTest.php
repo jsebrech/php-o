@@ -1,6 +1,8 @@
 <?php
 
 include_once realpath(__DIR__)."/../src/O/StringClass.php";
+// used for in_array test
+include_once realpath(__DIR__)."/../src/O/ArrayClass.php";
 
 $utf8string = json_decode("\"\u03ba\u03cc\u03c3\u03bc\u03b5\""); // strlen($utf8string) == 10, s()->len() == 5
 
@@ -93,9 +95,24 @@ class OStringTest extends PHPUnit_Framework_TestCase
   
   public function testPregMatch()
   {
-    $this->assertEquals(1, O\s("test foo")->preg_match("/foo/"));
-    $this->assertEquals(2, O\s("foo foo")->preg_match_all("/foo/"));
+    global $utf8string;
+    $this->assertEquals(1, O\s($utf8string."foo")->preg_match("/f(oo)/", $matches));
+    $this->assertEquals("foo", $matches[0]);
+    $this->assertEquals(1, O\s($utf8string."foo")->preg_match("/f(oo)/", $matches, PREG_OFFSET_CAPTURE));
+    $this->assertEquals("foo", $matches[0][0]);
+    $this->assertEquals(5, $matches[0][1]);
+    $this->assertEquals(2, O\s($utf8string."foo foo")->preg_match_all("/f(oo)/", $matches, PREG_OFFSET_CAPTURE | PREG_PATTERN_ORDER));
+    $this->assertEquals(5, $matches[0][0][1]);
+    $this->assertEquals(2, O\s($utf8string."foo foo")->preg_match_all("/f(oo)/", $matches, PREG_OFFSET_CAPTURE | PREG_SET_ORDER));
+    $this->assertEquals(5, $matches[0][0][1]);
     $this->assertEquals("test", (string) O\s("tefoost")->preg_replace("/foo/", ""));
+  }
+
+  public function testInArray()
+  {
+    $arr = array("bar", "foo");
+    $this->assertEquals(true, O\s("foo")->in_array($arr));
+    $this->assertEquals(true, O\s("foo")->in_array(O\a($arr)));
   }
   
   public function testParseType()
