@@ -1,5 +1,4 @@
-php-o
-=====
+# php-o
 
 *O-syntax for PHP*
 
@@ -13,12 +12,27 @@ You can use composer to install "jsebrech/o", and then load it like this:
 
     <?php namespace O; include "vendor/autoload.php"; O::init();
 
-Letter soup
------------
+It is also possible to load each of the pieces described below separately:
+
+    include("path/to/O/StringClass.php");
+    echo O\s("foo")->replace("foo", "bar");
+
+## Table of Contents
+
+* [php-o](#php-o)
+    * [Table of Contents](#table-of-contents)
+    * [Strings and Arrays](#strings-and-arrays)
+    * [Objects and Types](#objects-and-types)
+    * [Input Validation](#input-validation)
+    * [Chainables](#chainables)
+    * [Session Handling](#session-handling)
+    * [Example Application](#example-application)
+
+## Strings and Arrays
 
 **The heart of O are the three letter functions: `s()`, `a()`, and `o()`.**
 
-Let's start with the **`s()`** function, which is used to add methods to a string:
+The **`s()`** function is used to add methods to a string:
 
     echo s("abc")->len();
       // 3
@@ -93,15 +107,14 @@ Implemented methods are: `->count()`, `->has()` (instead of `in_array()`), `->se
 
 Note that the last line proves that the `s()` methods are UTF-8 aware, as 0.8 means a difference of one character.
 
-Objects and types
------------------
+## Objects and Types
 
 The `o()` function is used to convert an array or string to an object. A string is treated as JSON data.
 
       $o = o('{"key":"value"}');
       echo $o->key; // outputs "value"
 
-A much more useful property however is the ability to cast objects or JSON data to a defined type:
+It can be used to cast objects or JSON data to a defined type:
 
       class IntKeyValue {
         /** @var int */
@@ -128,7 +141,7 @@ Supported primitive types are:
 - **resource**: becomes NULL if it is not a resource
 - **object**: uses o() to cast to stdObject (accepts JSON string)
 
-Any piece of data that fails to convert to the right type becomes NULL. This is a quick and easy way to force JSON input to be in the right type.
+Any piece of data that fails to convert to the right type becomes NULL. This is an easy way to force JSON input to be in the right type.
 
 **Tips:**
 
@@ -156,10 +169,9 @@ When you call that script with ?foo=test it will output:
 
 The `foo` parameter is taken from the $_REQUEST array, but the `bar` gets its default value instead from the type definition. If bar was specified, it would automatically get converted to an int if possible (and become NULL otherwise).
 
-Positive input validation
--------------------------
+## Input Validation
 
-As pointed out above, the `o()->cast()` method is a convenient way to force input to be of a specific type. However, to positively validate your input you want to verify not just the type, but also the range of values.
+As pointed out in the previous section, the `o()->cast()` method is a convenient way to force input to be of a specific type. However, to positively validate your input you want to verify not just the type, but also the range of values.
 
 To this end, php-o implements [JSR-303 (Java Bean Validation)](http://docs.oracle.com/javaee/6/tutorial/doc/gircz.html).
 
@@ -234,10 +246,9 @@ The supported annotations are these:
 
 The Validator is a pluggable framework. You can easily add your own annotations. Look at the O source code to see how.
 
-Chainables
-----------
+## Chainables
 
-There is one more trick up this library's sleeve, and that is the `c()` function. What this function does is wrap an object so that the methods on that object return a chainable object.
+The `c()` function implements a fluent API on objects that are not fluent by default. In other words, it wraps an object so that the methods on that object return a chainable object.
 
 That means you can do something like this:
 
@@ -256,20 +267,15 @@ You can use the `c()` function on any type, not just the special types provided 
       echo c(new \DateTime())->format("Y-m-d")->explode("-")->pop();
       // contrived example to output the current day
 
-*Notice that we used the `\` prefix here for `\DateTime` because the code exists inside the O namespace and PHP forces us to explicitly specify the global namespace to use DateTime.*
-
-There are also some convenient shorthand functions:
+Shorthand functions are provided:
 
 - cs() == c(s())
 - ca() == c(a())
 - co() == c(o())
 
-Chainables are smart enough not to accidentally wrap a chainable, so you can go chainable-crazy if you want (`c(c(c()))`) without it causing problems.
+## Session Handling
 
-Session handling
-----------------
-
-Another thing O does for you is set up sessions so they are secure by default.
+O sets up sessions so they are secure by default.
 
 When you do `session_start()` O guarantees the following:
 
@@ -278,7 +284,7 @@ When you do `session_start()` O guarantees the following:
 - The session name is changed from the default
 - The session id is changed on the first request to prevent session fixation
 
-Additionally, some convenience functionality is provided to protect against CSRF attacks. To use this:
+Some convenience functionality is provided to protect against CSRF attacks. To use this:
 
 1. Put this code in your form:  
 
@@ -297,17 +303,6 @@ There's also a Session wrapper class to give it an OO taste:
       echo $session->getCSRFToken(); // == get_csrf_token();
       if (!$session->isCSRFProtected()) die(); // == is_csrf_protected();
 
-Example app
------------
+## Example Application
 
 There is a [demo app](https://github.com/jsebrech/o-demo) that shows how O can be used in practice. This also shows off the ability to use HTML templating via the `o()->render()` method.
-
-Separate elements
------------------
-
-Each of the different pieces can be included separately.
-
-For example, to use just the s() function:
-
-      include("path/to/O/StringClass.php");
-      echo O\s("foo")->replace("foo", "bar");
