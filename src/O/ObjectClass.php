@@ -164,8 +164,8 @@ function convertType($value, $type) {
       case "void": return NULL;
       case "bool": case "boolean": return (bool) $value;
       case "FALSE": case "false": return FALSE;
-      case "int": case "integer": return intval($value);
-      case "float": case "double": return floatval($value);
+      case "int": case "integer": return intval(is_object($value) ? (string) $value : $value);
+      case "float": case "double": return floatval(is_object($value) ? (string) $value : $value);
       case "string": return strval($value);
       case "mixed": return $value;
       case "resource": return is_resource($value) ? $value : NULL;
