@@ -14,7 +14,11 @@ class ObjectClass implements \IteratorAggregate, \ArrayAccess
 
   function __construct($o) {
     if (is_string($o)) $o = json_decode($o);
-    $this->o = (object) $o;
+    if (is_object($o) || is_array($o)) {
+      $this->o = (object) $o;
+    } else {
+      $this->o = NULL;
+    };
   }
 
   function __toString() {
