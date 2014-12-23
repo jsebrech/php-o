@@ -23,5 +23,7 @@ class O {
     if (!class_exists("\\O\\PDO") && extension_loaded("pdo")) {
       include($classPath."/PDO.php");
     }
+    // DateTime
+    if (!class_exists("\\O\\DateTime")) include($classPath."/DateTime.php");
   }
 }

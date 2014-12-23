@@ -8,6 +8,7 @@ include_once "OReflectionTest.php";
 include_once "OValidatorTest.php";
 include_once "OPDOTest.php";
 include_once "OPDOMySQLTest.php";
+include_once "ODateTimeTest.php";
 
 class AllTests
 {
@@ -23,7 +24,8 @@ class AllTests
         $suite->addTestSuite("OValidatorTest");
         $suite->addTestSuite("OPDOTest");
         $suite->addTestSuite("OPDOMySQLTest");
- 
+        $suite->addTestSuite("ODateTimeTest");
+
         return $suite;
     }
 }
