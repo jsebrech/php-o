@@ -79,6 +79,14 @@ class OObjectTest extends PHPUnit_Framework_TestCase
     $obj->var1 = 5;
     $this->assertTrue($obj->validate());
   }
+
+  public function testConvertDateTime() {
+    $strISODate = "2011-12-19T22:15:00+01:00";
+    $obj = O\o(array("var1" => $strISODate))->cast("ObjectTest4");
+    $this->assertTrue(is_object($obj));
+    $this->assertTrue(is_subclass_of($obj->var1, "DateTime"));
+    $this->assertEquals($strISODate, $obj->var1->format('Y-m-d\TH:i:sP'));
+  }
   
 }
 
@@ -125,4 +133,12 @@ class ObjectTest3
    * @Min(1)
    */
   public $var1 = 0;
+}
+
+class ObjectTest4
+{
+  /**
+   * @var DateTime
+   */
+  public $var1;
 }

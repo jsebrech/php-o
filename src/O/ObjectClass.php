@@ -3,6 +3,7 @@
 namespace O;
 
 if (!class_exists("\\O\\ReflectionClass")) include("ReflectionClass.php");
+if (!class_exists("\\O\\DateTime")) include("DateTime.php");
 
 /**
  * Supporting class for the o() function
@@ -169,6 +170,7 @@ function convertType($value, $type) {
       case "mixed": return $value;
       case "resource": return is_resource($value) ? $value : NULL;
       case "object": return is_object($value) ? $value : o($value)->cast();
+      case "DateTime": return ($value instanceof DateTime) ? $value : new DateTime($value);
       default: return o($value)->cast($type->value);
     }
   };
