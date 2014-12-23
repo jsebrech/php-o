@@ -141,6 +141,7 @@ Supported primitive types are:
 - **mixed**: leaves value unconverted
 - **resource**: becomes NULL if it is not a resource
 - **object**: uses o() to cast to stdObject (accepts JSON string)
+- **DateTime**: converts a string or int to a DateTime instance
 
 Any piece of data that fails to convert to the right type becomes NULL. This is an easy way to force JSON input to be in the right type.
 
