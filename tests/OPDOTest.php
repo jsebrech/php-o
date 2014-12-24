@@ -156,11 +156,35 @@ class OPDOTest extends PHPUnit_Framework_TestCase
     $this->assertEquals(5, $count);
   }
 
+  function testUpdateAnonParams()
+  {
+    $count = self::$db->update(
+      "test",
+      array("description" => "foo"),
+      "id >= ? and id <= ?",
+      array(2, 6)
+    );
+    $this->assertEquals(5, $count);
+    $count = self::$db->fetchOne("select count(*) from test where description = 'foo'");
+    $this->assertEquals(5, $count);
+  }
+
   function testDelete() {
     $count = self::$db->delete(
       "test",
       "id >= :id1 and id <= :id2",
       array("id1" => 2, "id2" => 6)
+    );
+    $this->assertEquals(5, $count);
+    $count = self::$db->fetchOne("select count(*) from test");
+    $this->assertEquals(5, $count);
+  }
+
+  function testDeleteAnonParams() {
+    $count = self::$db->delete(
+      "test",
+      "id >= ? and id <= ?",
+      array(2, 6)
     );
     $this->assertEquals(5, $count);
     $count = self::$db->fetchOne("select count(*) from test");

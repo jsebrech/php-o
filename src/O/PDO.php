@@ -149,18 +149,26 @@ class PDO extends \PDO {
     $query =
       "update ".$table.PHP_EOL .
       "set" . PHP_EOL;
-    $values = $this->_convertBind($values, "update");
+    $values = $this->_convertBind($values);
     $bind = array();
     $set = array();
     foreach ($values as $field => $value) {
-      $bind["pdo".count($set)] = $value;
-      $set[] = "  ".$field." = :pdo".count($set);
+      // if we should use named parameters
+      if ($this->_isAssoc($whereBind)) {
+        $name = "pdo".count($set);
+        $bind[$name] = $value;
+        $set[] = "  ".$field." = :".$name;
+      // used anonymous parameters
+      } else {
+        $set[] = "  ".$field." = ?";
+        $bind[] = $value;
+      }
     };
     $query .= implode(",".PHP_EOL, $set).PHP_EOL;
     if (!empty($where)) {
       $query .= "where".PHP_EOL.$where;
       if (!empty($whereBind)) {
-        $whereBind = $this->_convertBind($whereBind, "update");
+        $whereBind = $this->_convertBind($whereBind);
         $bind = array_merge($bind, $whereBind);
       };
     };
@@ -283,6 +291,19 @@ class PDO extends \PDO {
         "O\\PDO::insert expects argument to be array or object", "90001");
     };
     return $bind;
+  }
+
+  /**
+   * @param mixed $bind
+   * @return bool
+   */
+  private function _isAssoc($bind) {
+    if (is_object($bind)) return true;
+    if (is_array($bind)) {
+      // true if array keys are not sequential and numeric
+      return array_keys($bind) !== range(0, count($bind) - 1);
+    }
+    return false;
   }
 
   /**
