@@ -47,6 +47,27 @@ class OPDOTest extends PHPUnit_Framework_TestCase
     self::$db->fetchOne("select id from invalid");
   }
 
+  public function testQueryForeach() {
+    $count = 0;
+    foreach (self::$db->query("select * from test order by id") as $row) {
+      $count++;
+      $this->assertEquals($count, intval($row["id"]));
+    };
+    $this->assertEquals(10, $count);
+  }
+
+  public function testExecuteBound() {
+    $count = 0;
+    $params = array("id" => 5);
+    foreach (self::$db->prepare(
+      "select * from test where id <= :id")->execute($params) as $row
+    ) {
+      $count++;
+      $this->assertEquals($count, $row["id"]);
+    };
+    $this->assertEquals(5, $count);
+  }
+
   public function testFetchAll() {
     $rows = self::$db->fetchAll(
       "select * from test where id <> :id",
