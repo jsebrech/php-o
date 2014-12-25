@@ -401,4 +401,4 @@ You can attach a profiler to get per-query profiles:
 
 ## Example Application
 
-There is a [demo app](https://github.com/jsebrech/o-demo) that shows how O can be used in practice. This also shows off the ability to use HTML templating via the `o()->render()` method.
+There is a [demo app](https://github.com/jsebrech/o-demo) that shows how O can be used in practice. This also shows off the ability to use HTML templating via the `o()->render()` method. There's also a [demo app](https://github.com/jsebrech/o-demo-rest) showing how to build a web service.
