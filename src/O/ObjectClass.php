@@ -166,7 +166,7 @@ function convertType($value, $type) {
   } else {
     switch ($type->value) {
       case "void": return NULL;
-      case "bool": case "boolean": return (bool) $value;
+      case "bool": case "boolean": return filter_var($value, FILTER_VALIDATE_BOOLEAN);
       case "FALSE": case "false": return FALSE;
       case "int": case "integer": return intval(is_object($value) ? (string) $value : $value);
       case "float": case "double": return floatval(is_object($value) ? (string) $value : $value);
